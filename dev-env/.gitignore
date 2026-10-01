@@ -1,0 +1,6 @@
+# dev-env 目录里是从本机安装/下载中提取的 Minecraft、Fabric、JDK 二进制，
+# 体积大（约 332 MB）且可重新获取，因此不纳入版本控制。
+# README.md 与 manifest.sha1 不受影响，照常提交。
+*.jar
+*.exe
+*.log

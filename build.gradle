@@ -1,0 +1,77 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'maven-publish'
+}
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	// 只有在依赖其它模组时才需要在这里添加仓库。
+	// Loom 会自动加入下载 Minecraft 及其依赖所需的 maven 仓库。
+	// 参见 https://docs.gradle.org/current/userguide/declaring_repositories.html
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"crimsoncoppergrid" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	// 版本号统一在 gradle.properties 中维护
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// Fabric API：技术上是可选的，但基本都会用到。
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	// MC 26.3 要求的运行时是 Java 25（版本元数据里为 java-runtime-epsilon / majorVersion 25）
+	it.options.release = 25
+}
+
+java {
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	def projectName = project.name
+	inputs.property "projectName", projectName
+
+	from("LICENSE") {
+		rename { "${it}_$projectName"}
+	}
+}
+
+// maven 发布配置
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			from components.java
+		}
+	}
+
+	repositories {
+		// 这里用于发布产物的仓库，与上面的依赖仓库不是同一回事
+	}
+}

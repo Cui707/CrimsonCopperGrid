@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "crimsoncoppergrid",
+	"version": "${version}",
+	"name": "CrimsonCopperGrid",
+	"description": "只用原版铜与红石搭建的轻量级 Fabric 能源模组。",
+	"authors": [
+		"Cui707"
+	],
+	"contact": {
+		"homepage": "https://github.com/Cui707/CrimsonCopperGrid",
+		"sources": "https://github.com/Cui707/CrimsonCopperGrid"
+	},
+	"license": "MIT",
+	"icon": "assets/crimsoncoppergrid/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.cyx.crimsoncoppergrid.CrimsonCopperGrid"
+		],
+		"client": [
+			"com.cyx.crimsoncoppergrid.client.CrimsonCopperGridClient"
+		]
+	},
+	"mixins": [
+		"crimsoncoppergrid.mixins.json",
+		{
+			"config": "crimsoncoppergrid.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
