@@ -20,6 +20,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 /**
  * 每个 {@link ServerLevel} 一份的电网注册表。
@@ -262,7 +263,11 @@ public final class GridRegistry {
 		}
 		BlockState updated = state;
 		for (Direction side : Direction.values()) {
-			updated = updated.setValue(CableBlock.propertyFor(side), shouldConnect(pos, side));
+			BooleanProperty property = CableBlock.propertyFor(side);
+			if (!updated.hasProperty(property)) {
+				continue;
+			}
+			updated = updated.setValue(property, shouldConnect(pos, side));
 		}
 		if (updated != state) {
 			level.setBlock(pos, updated, CableBlock.UPDATE_FLAGS);

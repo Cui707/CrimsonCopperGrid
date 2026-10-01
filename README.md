@@ -16,14 +16,15 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
 | JDK | 运行 Gradle 用本机 JDK 27（`D:\jdk27`） | 模组字节码目标为 **Java 25** |
 
 > 已在本机实测通过：**JDK 27 + Gradle 9.8.0 + Loom 1.18.2** 下执行 `gradlew build`（含单元测试），
-> 产物 `build/libs/crimsoncoppergrid-0.0.3.jar`，字节码 major 69（Java 25）。
+> 并用 `gradlew runClient` 实机启动过：模组正常加载、mixin 注入生效、世界可进入（详见下方运行期踩坑记录）。
+> 产物 `build/libs/crimsoncoppergrid-0.0.4.jar`，字节码 major 69（Java 25）。
 > 本机没有独立安装 JDK 25，Gradle 直接跑在 JDK 27 上；若你换成 JDK 25，把 wrapper 降回 9.7.1 也可以。
 
 > **映射说明**：Yarn 目前**没有** 26.3 的映射（`meta.fabricmc.net/v2/versions/yarn/26.3` 返回空数组），
 > 所以 `build.gradle` 里**不写 `mappings` 行**，由 Loom 1.18 默认采用 Mojang 官方映射。
 > 这意味着模组代码使用官方类名，例如 `net.minecraft.resources.Identifier`（旧的 Yarn 名 `ResourceLocation` 不再适用）。
 
-## 已实现的内容（0.0.3）
+## 已实现的内容（0.0.4）
 
 | 分类 | 方块/物品 | 数值与行为 |
 | --- | --- | --- |
@@ -117,7 +118,7 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
 是与之配套的内存替身（不涉及任何 Minecraft 世界）。
 
 美术说明：所有模型贴图都直接引用原版材质（铜块、红石、玻璃、羊毛、岩浆、熔炉正面等），
-0.0.3 没有自定义贴图，目的先保证"进游戏能看到东西"。
+0.0.4 没有自定义贴图，目的先保证"进游戏能看到东西"。
 
 ## 构建与运行
 
@@ -184,6 +185,14 @@ $env:JAVA_HOME = 'D:\jdk27'
      `产出 == 用电消耗 + 电池净增量`，`src/test` 下的不变量测试就是守这条线的。
 - 给 `Grid` 加新能力时，优先通过 `NodeResolver` 接缝做，这样能继续被单元测试覆盖。
 - `src/main/resources/assets/crimsoncoppergrid/icon.png` 尚未提供：缺少图标只会让加载器打印一条警告，不影响运行；补一张 128×128 PNG 即可。
+
+### 运行期踩过的坑（都是实机跑 `runClient` 才暴露的）
+
+| 坑 | 现象 | 正确做法 |
+| --- | --- | --- |
+| 配方 pattern 里的空格 | 用 `.` 当空格 → `Pattern references symbol '.' but it's not defined in the key`，**客户端启动即崩**（`ReportedException: Registry Loading`） | 空格必须是**字面的 `' '`**，与原版一致 |
+| 方块状态取值前没判属性 | 点电线时 `IllegalArgumentException: Cannot get property ... powered ... does not exist in Block{minecraft:grass_block}`，被服务端吞成 `Failed to handle packet` | 取属性前先 `state.hasProperty(...)`（或先判方块类型）。**短路或 `a \|\| b(state)` 会让 `b` 对任意方块状态都被调用** |
+| 长会话日志轮转 | 退出时报 `Unable to delete file ... latest.log`，Gradle 以 exit 1 结束 | Windows 文件占用所致，**不是崩溃**（看日志末尾的 `Stopping!` 与 `BUILD SUCCESSFUL` 即可分辨） |
 
 ### 26.3 与旧版本不同的 API（本项目已踩过）
 

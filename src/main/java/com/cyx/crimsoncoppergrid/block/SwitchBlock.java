@@ -3,7 +3,6 @@ package com.cyx.crimsoncoppergrid.block;
 import com.cyx.crimsoncoppergrid.energy.GridRegistry;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -91,11 +90,9 @@ public class SwitchBlock extends Block {
 	}
 
 	public static boolean isConductor(BlockState state) {
-		return state.getValue(POWERED);
-	}
-
-	/** 判断某方向的状态是否导通（电闸关闭时断路）。 */
-	public static boolean conducts(BlockState state, Direction side) {
-		return state.getValue(POWERED);
+		// 必须先判断方块类型：POWERED 是电闸独有的属性，
+		// 对草方块之类的状态直接 getValue 会抛 IllegalArgumentException
+		// （这个 bug 是在实机点电线时被抓到的，见 README 的 0.0.4 说明）。
+		return state.hasProperty(POWERED) && state.getValue(POWERED);
 	}
 }

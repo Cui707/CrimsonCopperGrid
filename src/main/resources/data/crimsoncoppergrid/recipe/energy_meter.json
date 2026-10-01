@@ -5,9 +5,9 @@
     "R": "minecraft:redstone"
   },
   "pattern": [
-    "C.R",
-    ".R.",
-    "R.C"
+    "C R",
+    " R ",
+    "R C"
   ],
   "result": {
     "id": "crimsoncoppergrid:energy_meter"

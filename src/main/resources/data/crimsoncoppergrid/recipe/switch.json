@@ -5,7 +5,7 @@
   },
   "pattern": [
     "CCC",
-    ".C."
+    " C "
   ],
   "result": {
     "id": "crimsoncoppergrid:switch"
