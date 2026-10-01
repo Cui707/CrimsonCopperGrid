@@ -1,0 +1,48 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "minecraft:block/glass",
+    "glass": "minecraft:block/glass",
+    "frame": "minecraft:block/copper_block",
+    "cell": "minecraft:block/redstone_block",
+    "bottom": "minecraft:block/copper_block"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 12, 16],
+      "faces": {
+        "down": {"texture": "#bottom"},
+        "up": {"texture": "#frame"},
+        "north": {"texture": "#frame"},
+        "south": {"texture": "#frame"},
+        "west": {"texture": "#frame"},
+        "east": {"texture": "#frame"}
+      }
+    },
+    {
+      "from": [0, 12, 0],
+      "to": [16, 13, 16],
+      "faces": {
+        "down": {"texture": "#cell"},
+        "up": {"texture": "#cell"},
+        "north": {"texture": "#glass"},
+        "south": {"texture": "#glass"},
+        "west": {"texture": "#glass"},
+        "east": {"texture": "#glass"}
+      }
+    },
+    {
+      "from": [0, 13, 0],
+      "to": [16, 14, 16],
+      "faces": {
+        "down": {"texture": "#glass"},
+        "up": {"texture": "#glass"},
+        "north": {"texture": "#glass"},
+        "south": {"texture": "#glass"},
+        "west": {"texture": "#glass"},
+        "east": {"texture": "#glass"}
+      }
+    }
+  ]
+}

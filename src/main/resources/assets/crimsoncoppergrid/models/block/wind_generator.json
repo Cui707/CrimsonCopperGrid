@@ -1,0 +1,47 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "minecraft:block/copper_block",
+    "frame": "minecraft:block/copper_block",
+    "blade": "minecraft:block/white_wool",
+    "core": "minecraft:block/redstone_block"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 4, 16],
+      "faces": {
+        "down": {"texture": "#core"},
+        "up": {"texture": "#frame"},
+        "north": {"texture": "#frame"},
+        "south": {"texture": "#frame"},
+        "west": {"texture": "#frame"},
+        "east": {"texture": "#frame"}
+      }
+    },
+    {
+      "from": [4, 4, 4],
+      "to": [12, 10, 12],
+      "faces": {
+        "down": {"texture": "#frame"},
+        "up": {"texture": "#core"},
+        "north": {"texture": "#frame"},
+        "south": {"texture": "#frame"},
+        "west": {"texture": "#frame"},
+        "east": {"texture": "#frame"}
+      }
+    },
+    {
+      "from": [7, 10, 1],
+      "to": [9, 12, 15],
+      "faces": {
+        "down": {"texture": "#blade"},
+        "up": {"texture": "#blade"},
+        "north": {"texture": "#blade"},
+        "south": {"texture": "#blade"},
+        "west": {"texture": "#blade"},
+        "east": {"texture": "#blade"}
+      }
+    }
+  ]
+}

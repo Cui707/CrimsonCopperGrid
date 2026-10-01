@@ -1,0 +1,17 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "crimsoncoppergrid:block/switch_off"
+      }
+    },
+    {
+      "apply": {
+        "model": "crimsoncoppergrid:block/switch_on"
+      },
+      "when": {
+        "powered": "true"
+      }
+    }
+  ]
+}

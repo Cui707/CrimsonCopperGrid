@@ -1,0 +1,23 @@
+{
+  "itemGroup.crimsoncoppergrid.main": "Crimson Copper Grid",
+  "block.crimsoncoppergrid.cable": "Copper Cable",
+  "block.crimsoncoppergrid.switch": "Copper Switch",
+  "block.crimsoncoppergrid.battery": "Copper Battery",
+  "block.crimsoncoppergrid.fuel_generator": "Fuel Generator",
+  "block.crimsoncoppergrid.solar_generator": "Solar Generator",
+  "block.crimsoncoppergrid.wind_generator": "Wind Generator",
+  "item.crimsoncoppergrid.energy_meter": "Grid Meter",
+  "item.crimsoncoppergrid.energy_meter.header": "[CrimsonCopperGrid] Grid overview",
+  "item.crimsoncoppergrid.energy_meter.devices": "Devices %s, cables %s",
+  "item.crimsoncoppergrid.energy_meter.generation": "Generation capacity %s FE/t",
+  "item.crimsoncoppergrid.energy_meter.storage": "Stored %s / %s FE",
+  "item.crimsoncoppergrid.energy_meter.no_grid": "No powered grid here (place a cable or a device first)",
+  "block.crimsoncoppergrid.coal_synthesizer": "Coal Synthesizer",
+  "block.crimsoncoppergrid.coal_synthesizer.status": "Coal stored: %s, progress %s%%",
+  "block.crimsoncoppergrid.lava_generator": "Lava Generator",
+  "block.crimsoncoppergrid.lava_generator.status": "Lava %s / %s mB",
+  "block.crimsoncoppergrid.lava_generator.tank_full": "The tank is full",
+  "block.crimsoncoppergrid.lava_generator.tank_empty": "Not enough lava (1 bucket = 1000 mB)",
+  "block.crimsoncoppergrid.electric_furnace": "Electric Furnace",
+  "block.crimsoncoppergrid.electric_furnace.status": "Smelting progress %s%%"
+}

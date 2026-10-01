@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "crimsoncoppergrid:block/wind_generator"
+    },
+    "facing=east": {
+      "model": "crimsoncoppergrid:block/wind_generator",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "crimsoncoppergrid:block/wind_generator",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "crimsoncoppergrid:block/wind_generator",
+      "y": 270
+    }
+  }
+}

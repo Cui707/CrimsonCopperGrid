@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "C": "minecraft:copper_ingot"
+  },
+  "pattern": [
+    "CCC",
+    ".C."
+  ],
+  "result": {
+    "id": "crimsoncoppergrid:switch"
+  }
+}

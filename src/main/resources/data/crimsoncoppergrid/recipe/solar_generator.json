@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "G": "minecraft:glass",
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "GGG",
+    "CCC",
+    "R.R"
+  ],
+  "result": {
+    "id": "crimsoncoppergrid:solar_generator"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "F": "minecraft:furnace",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "CCC",
+    "CFC",
+    "CRC"
+  ],
+  "result": {
+    "id": "crimsoncoppergrid:electric_furnace"
+  }
+}

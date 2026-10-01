@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "W": "minecraft:white_wool",
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "WWW",
+    "CRC",
+    "CCC"
+  ],
+  "result": {
+    "id": "crimsoncoppergrid:wind_generator"
+  }
+}

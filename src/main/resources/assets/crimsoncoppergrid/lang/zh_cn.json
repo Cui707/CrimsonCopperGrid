@@ -1,0 +1,23 @@
+{
+  "itemGroup.crimsoncoppergrid.main": "铜与红石电网",
+  "block.crimsoncoppergrid.cable": "铜制电线",
+  "block.crimsoncoppergrid.switch": "铜制电闸",
+  "block.crimsoncoppergrid.battery": "铜制电池",
+  "block.crimsoncoppergrid.fuel_generator": "燃料发电机",
+  "block.crimsoncoppergrid.solar_generator": "太阳能发电机",
+  "block.crimsoncoppergrid.wind_generator": "风力发电机",
+  "item.crimsoncoppergrid.energy_meter": "电网总览器",
+  "item.crimsoncoppergrid.energy_meter.header": "【铜与红石电网】电网总览",
+  "item.crimsoncoppergrid.energy_meter.devices": "接入设备 %s 台，电线 %s 段",
+  "item.crimsoncoppergrid.energy_meter.generation": "发电能力 %s FE/t",
+  "item.crimsoncoppergrid.energy_meter.storage": "储能 %s / %s FE",
+  "item.crimsoncoppergrid.energy_meter.no_grid": "这里没有电网（先放一段电线或一台设备）",
+  "block.crimsoncoppergrid.coal_synthesizer": "电力煤炭合成机",
+  "block.crimsoncoppergrid.coal_synthesizer.status": "已存煤炭 %s 块，进度 %s%%",
+  "block.crimsoncoppergrid.lava_generator": "电力岩浆机",
+  "block.crimsoncoppergrid.lava_generator.status": "岩浆 %s / %s mB",
+  "block.crimsoncoppergrid.lava_generator.tank_full": "罐子已经满了",
+  "block.crimsoncoppergrid.lava_generator.tank_empty": "岩浆不足（1 桶 = 1000 mB）",
+  "block.crimsoncoppergrid.electric_furnace": "电力熔炉",
+  "block.crimsoncoppergrid.electric_furnace.status": "烧炼进度 %s%%"
+}

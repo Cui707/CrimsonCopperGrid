@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "minecraft:block/furnace_front_on",
+    "top": "minecraft:block/furnace_front_on",
+    "front": "minecraft:block/iron_block",
+    "side": "minecraft:block/furnace_front_on",
+    "bottom": "minecraft:block/iron_block",
+    "back": "minecraft:block/furnace_front_on"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": {"texture": "#bottom"},
+        "up": {"texture": "#top"},
+        "north": {"texture": "#front"},
+        "south": {"texture": "#back"},
+        "west": {"texture": "#side"},
+        "east": {"texture": "#side"}
+      }
+    }
+  ]
+}
