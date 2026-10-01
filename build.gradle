@@ -31,6 +31,18 @@ dependencies {
 
 	// Fabric API：技术上是可选的，但基本都会用到。
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// 单元测试：验证电网结算这类纯逻辑，不需要启动游戏
+	testImplementation platform('org.junit:junit-bom:5.11.4')
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+	testLogging {
+		events 'passed', 'skipped', 'failed'
+	}
 }
 
 processResources {

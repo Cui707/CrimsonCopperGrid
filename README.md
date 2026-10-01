@@ -15,15 +15,15 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
 | Gradle | 9.8.0 | 由 wrapper 提供；**9.8.0 起才支持在 Java 27 上运行**（模板自带的 9.7.1 只支持到 Java 26） |
 | JDK | 运行 Gradle 用本机 JDK 27（`D:\jdk27`） | 模组字节码目标为 **Java 25** |
 
-> 已在本机实测通过：**JDK 27 + Gradle 9.8.0 + Loom 1.18.2** 下执行 `gradlew build`，
-> 产物 `build/libs/crimsoncoppergrid-0.0.2.jar`，字节码 major 69（Java 25）。
+> 已在本机实测通过：**JDK 27 + Gradle 9.8.0 + Loom 1.18.2** 下执行 `gradlew build`（含单元测试），
+> 产物 `build/libs/crimsoncoppergrid-0.0.3.jar`，字节码 major 69（Java 25）。
 > 本机没有独立安装 JDK 25，Gradle 直接跑在 JDK 27 上；若你换成 JDK 25，把 wrapper 降回 9.7.1 也可以。
 
 > **映射说明**：Yarn 目前**没有** 26.3 的映射（`meta.fabricmc.net/v2/versions/yarn/26.3` 返回空数组），
 > 所以 `build.gradle` 里**不写 `mappings` 行**，由 Loom 1.18 默认采用 Mojang 官方映射。
 > 这意味着模组代码使用官方类名，例如 `net.minecraft.resources.Identifier`（旧的 Yarn 名 `ResourceLocation` 不再适用）。
 
-## 已实现的内容（0.0.2）
+## 已实现的内容（0.0.3）
 
 | 分类 | 方块/物品 | 数值与行为 |
 | --- | --- | --- |
@@ -52,8 +52,24 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
 - 单位采用 **FE 语义**（与 Forge Energy / Team Reborn Energy 一致：整数、`receive/extract`、
   `maxReceive == 0` 表示只出不进）。**不额外引入能量 API 依赖**，保持零外部依赖；
   将来若要和别的科技模组互通，内部实现不需要改。
-- 电网每个 **10 刻（0.5 秒）** 结算一次：发电机按需求发电 → 缺口由电池放电补 →
-  用不完才拿去充电。
+- 电网每个 **10 刻（0.5 秒）** 结算一次，顺序是：
+
+  1. **汇总需求**：`需求 = 所有用电设备的 wantedEnergy() 之和 + 电池本周期可接收量`
+  2. 发电机按需求发电（各自再按 `maxOutput` 封顶）
+  3. 发电不够的部分由电池放电补上
+  4. 发电超过实际消耗的富余，才拿去给电池充电
+
+- ⚠️ **「需求」的定义是这个系统里最容易写错的一处**，有两条硬性要求：
+
+  - **电池的可接收量必须计入需求**。否则发电机只会发「够用电器用」的量，
+    富余电量永远不会被生产出来，**电池永远充不满**。
+  - 计入时取的是 **`min(maxReceive, 剩余容量)`**，而不是「剩余容量」。
+    若用剩余容量，当电池单次吞吐小于其空余空间时（例如上限 1 000 但空出 100 000），
+    多发的电无处可去，只能滞留在发电机的内部缓冲里，**表现为能量凭空消失**。
+
+- 结算时对电池会先检查 `canReceive()` / `canExtract()` 再读写，
+  避免把电充进「只出不进」的实体（发电机就是这种）。
+  由此保证一条核心不变量：**产出 == 用电消耗 + 电池净增量**，既不多也不少。
 - 组网只在拓扑变化时重建（放/拆方块、开关切换），不做每 tick 全网遍历；电线是纯导体，
   从设备出发沿电线洪水填充成网，**不跨越未加载区块**。
 - 已知取舍：电池/熔炉目前没有物品栏 GUI，交互是"手持物品右键放入、空手右键看状态"。
@@ -96,8 +112,12 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
             └── crimsoncoppergrid.client.mixins.json
 ```
 
+测试源码在 `src/test/java/com/cyx/crimsoncoppergrid/energy/`：
+`GridSettlementTest` 是电网结算的不变量测试，`TestBattery` / `TestProducer` / `TestConsumer`
+是与之配套的内存替身（不涉及任何 Minecraft 世界）。
+
 美术说明：所有模型贴图都直接引用原版材质（铜块、红石、玻璃、羊毛、岩浆、熔炉正面等），
-0.0.2 没有自定义贴图，目的先保证"进游戏能看到东西"。
+0.0.3 没有自定义贴图，目的先保证"进游戏能看到东西"。
 
 ## 构建与运行
 
@@ -107,8 +127,11 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
 # JDK：本机为 D:\jdk27；若 PATH 里没有 java，先设置 JAVA_HOME
 $env:JAVA_HOME = 'D:\jdk27'
 
-# 构建（产物在 build/libs/，已实测通过）
+# 构建（含单元测试；产物在 build/libs/）
 .\gradlew.bat build
+
+# 只跑单元测试
+.\gradlew.bat test
 
 # 启动开发用客户端 / 服务端（Loom 自动生成 run/ 目录）
 .\gradlew.bat runClient
@@ -118,7 +141,27 @@ $env:JAVA_HOME = 'D:\jdk27'
 .\gradlew.bat compileJava compileClientJava
 ```
 
-### 本机网络（代理）说明
+### 单元测试
+
+电网结算是纯逻辑，测试不需要启动游戏：`Grid.settle(NodeResolver, producers, consumers, batteries)`
+这个静态重载只通过 `NodeResolver` 接触外部世界，测试用内存映射即可驱动
+（实例方法 `settle()` 只是包一层 `level.getBlockEntity`）。
+
+覆盖的不变量：
+
+| 类别 | 内容 |
+| --- | --- |
+| 能量守恒 | 产出 == 用电消耗 + 电池净增量（逐条断言，不多不少） |
+| 不凭空造电 | 无电源则零消耗；电池被掏空后不为负；单块不够时只给真实存量 |
+| 不超发 | 用电设备拿到的电不超过自身需求；电池满了不会倒灌给用电器 |
+| 充电语义 | 电池满了就停止发电；可接收空间大于单次上限时不会发出无处可去的电 |
+| 多电池 | 缺口按序分摊且都会收敛；超出单块存量的部分会继续向下一块取 |
+| 确定性 | 相同输入两次结算结果一致（成员遍历顺序固定） |
+
+> 这套测试在编写过程中抓到过两个真实缺陷（发电机永不充电、能量静默消失），
+> 详见"电力系统设计"一节里对「需求」定义的说明。
+
+## 本机网络（代理）说明
 
 这台机器**直连会失败**：`services.gradle.org` 与 Maven 仓库的直连会在 TLS 握手阶段超时，
 必须走本地代理 `127.0.0.1:7890`。代理已经写进配置：
@@ -128,14 +171,18 @@ $env:JAVA_HOME = 'D:\jdk27'
 - wrapper 的 `networkTimeout` 已从 10 秒提高到 300 秒，`retries` 设为 2
 
 如果你的网络可以直连，把上述 4～6 行代理配置删掉即可。
+（代理没开时 `gradlew test` 会因为拉不到 JUnit 而失败，这属于环境问题，不是代码问题。）
 
 ## 开发注意事项
 
 - 能量网络的核心逻辑放 `src/main`（服务端权威），渲染与界面放 `src/client`。
 - 新增 mixin 时记得在两个 `*.mixins.json` 中登记对应类。
-- **用电设备声明需求的时机很重要**：电网是「先汇总所有 `wantedEnergy()`，再按需求发电」，
-  所以需求必须在 **tick 阶段**算好（见 `ElectricFurnaceBlockEntity`），
-  不能在 `consumeEnergy()` 里才第一次提出——那样电网会以为没人要电，发电机和电池都不会动。
+- **结算顺序是「先汇总需求、再分配」，所以两件事必须做对**：
+  1. 用电设备的需求要在 **tick 阶段**算好（见 `ElectricFurnaceBlockEntity`），
+     不能在 `consumeEnergy()` 里才第一次提出——那样电网会以为没人要电，发电机和电池都不会动；
+  2. 修改 `Grid.settle()` 里「需求」的算法时，务必保证
+     `产出 == 用电消耗 + 电池净增量`，`src/test` 下的不变量测试就是守这条线的。
+- 给 `Grid` 加新能力时，优先通过 `NodeResolver` 接缝做，这样能继续被单元测试覆盖。
 - `src/main/resources/assets/crimsoncoppergrid/icon.png` 尚未提供：缺少图标只会让加载器打印一条警告，不影响运行；补一张 128×128 PNG 即可。
 
 ### 26.3 与旧版本不同的 API（本项目已踩过）

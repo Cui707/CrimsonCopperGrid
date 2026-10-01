@@ -93,16 +93,41 @@ public final class Grid {
 	 * 因此「有电池在充电」就意味着当前没有缺电的设备。
 	 */
 	public void settle() {
+		settle(pos -> {
+			BlockEntity be = level.getBlockEntity(pos);
+			return be instanceof EnergyStorage storage ? storage : null;
+		}, producers, consumers, batteries);
+	}
+
+	/** 节点解析接缝：把坐标变成能量存储。生产代码走世界查询，测试用内存映射。 */
+	@FunctionalInterface
+	public interface NodeResolver {
+		EnergyStorage resolve(BlockPos pos);
+	}
+
+	/**
+	 * 结算主体。做成静态纯函数（只通过 {@link NodeResolver} 触碰外部世界），
+	 * 这样结算逻辑可以被单元测试直接驱动，不需要真的开一个服务器。
+	 *
+	 * <p>不变量（有对应单元测试）：
+	 * <ul>
+	 *   <li>电池不会被放成负数；</li>
+	 *   <li>能量守恒：产出 == 消耗 + 电池净增量；</li>
+	 *   <li>没有电源时不发电、不凭空造电；</li>
+	 *   <li>用电设备拿不到超过其需求量的电。</li>
+	 * </ul>
+	 */
+	public static void settle(NodeResolver resolver, Set<BlockPos> producers, Set<BlockPos> consumers, Set<BlockPos> batteries) {
 		List<ProducerRef> liveProducers = new ArrayList<>();
 		List<ConsumerRef> liveConsumers = new ArrayList<>();
 		List<BatteryRef> liveBatteries = new ArrayList<>();
 
-		collectProducers(liveProducers);
-		collectConsumers(liveConsumers);
-		collectBatteries(liveBatteries);
+		collectProducers(resolver, producers, liveProducers);
+		collectConsumers(resolver, consumers, liveConsumers);
+		collectBatteries(resolver, batteries, liveBatteries);
 
+		// 没有任何可调用的电源（发电机 + 电池）时，用电设备本周期无电可用
 		if (liveProducers.isEmpty() && liveBatteries.isEmpty()) {
-			// 没有电源，用电设备本周期无电可用
 			for (ConsumerRef ref : liveConsumers) {
 				ref.consumer().consumeEnergy(0);
 			}
@@ -115,10 +140,26 @@ public final class Grid {
 			demand += Math.max(0, ref.consumer().wantedEnergy());
 		}
 
+		// 电池本周期能接收的量也算进需求：否则发电机只会发「够用电器用」的量，
+		// 多余的电永远不会被生产出来，电池也就永远充不满。
+		// 注意这里必须用「本周期接收上限」而不是「剩余容量」——
+		// 如果用剩余容量，当电池单次吞吐有限时（例如上限 1000 但空出 100000），
+		// 多发的电会无处可去，只能滞留在发电机的内部缓冲里，等于凭空消失。
+		long receivable = 0;
+		for (BatteryRef ref : liveBatteries) {
+			EnergyStorage storage = ref.storage();
+			if (!storage.canReceive()) {
+				continue;
+			}
+			long room = Math.max(0, storage.getEnergyCapacity() - storage.getEnergyStored());
+			receivable += Math.min(storage.getMaxReceive(), room);
+		}
+		long generatorDemand = demand + receivable;
+
 		// 发电机按需求发电
 		long generated = 0;
 		for (ProducerRef ref : liveProducers) {
-			long want = Math.max(0, demand - generated);
+			long want = Math.max(0, generatorDemand - generated);
 			if (want == 0) {
 				ref.producer().produceEnergy(0);
 				continue;
@@ -149,14 +190,18 @@ public final class Grid {
 		}
 	}
 
-	/** 让电池放电，返回实际补上的量。 */
+	/** 让电池放电，返回实际补上的量。只出不进的实体（例如发电机）不会被抽电。 */
 	private static long discharge(List<BatteryRef> batteries, long deficit) {
 		long remaining = deficit;
 		for (BatteryRef ref : batteries) {
 			if (remaining <= 0) {
 				break;
 			}
-			long pulled = ref.storage().extractEnergy(Math.min(ref.storage().getMaxExtract(), remaining), false);
+			EnergyStorage storage = ref.storage();
+			if (!storage.canExtract()) {
+				continue;
+			}
+			long pulled = storage.extractEnergy(Math.min(storage.getMaxExtract(), remaining), false);
 			if (pulled > 0) {
 				remaining -= pulled;
 			}
@@ -164,14 +209,18 @@ public final class Grid {
 		return deficit - remaining;
 	}
 
-	/** 把富余电量存入电池，返回实际存入的量。 */
+	/** 把富余电量存入电池，返回实际存入的量。只出不进的实体不会被充电。 */
 	private static long charge(List<BatteryRef> batteries, long surplus) {
 		long remaining = surplus;
 		for (BatteryRef ref : batteries) {
 			if (remaining <= 0) {
 				break;
 			}
-			long accepted = ref.storage().receiveEnergy(Math.min(ref.storage().getMaxReceive(), remaining), false);
+			EnergyStorage storage = ref.storage();
+			if (!storage.canReceive()) {
+				continue;
+			}
+			long accepted = storage.receiveEnergy(Math.min(storage.getMaxReceive(), remaining), false);
 			if (accepted > 0) {
 				remaining -= accepted;
 			}
@@ -179,28 +228,26 @@ public final class Grid {
 		return surplus - remaining;
 	}
 
-	private void collectProducers(List<ProducerRef> out) {
-		for (BlockPos pos : sorted(producers)) {
-			BlockEntity be = level.getBlockEntity(pos);
-			if (be instanceof EnergyProducer producer) {
+	private static void collectProducers(NodeResolver resolver, Set<BlockPos> positions, List<ProducerRef> out) {
+		for (BlockPos pos : sorted(positions)) {
+			if (resolver.resolve(pos) instanceof EnergyProducer producer) {
 				out.add(new ProducerRef(producer));
 			}
 		}
 	}
 
-	private void collectConsumers(List<ConsumerRef> out) {
-		for (BlockPos pos : sorted(consumers)) {
-			BlockEntity be = level.getBlockEntity(pos);
-			if (be instanceof EnergyConsumer consumer) {
+	private static void collectConsumers(NodeResolver resolver, Set<BlockPos> positions, List<ConsumerRef> out) {
+		for (BlockPos pos : sorted(positions)) {
+			if (resolver.resolve(pos) instanceof EnergyConsumer consumer) {
 				out.add(new ConsumerRef(consumer));
 			}
 		}
 	}
 
-	private void collectBatteries(List<BatteryRef> out) {
-		for (BlockPos pos : sorted(batteries)) {
-			BlockEntity be = level.getBlockEntity(pos);
-			if (be instanceof EnergyStorage storage && !(be instanceof EnergyProducer) && !(be instanceof EnergyConsumer)) {
+	private static void collectBatteries(NodeResolver resolver, Set<BlockPos> positions, List<BatteryRef> out) {
+		for (BlockPos pos : sorted(positions)) {
+			EnergyStorage storage = resolver.resolve(pos);
+			if (storage != null && !(storage instanceof EnergyProducer) && !(storage instanceof EnergyConsumer)) {
 				out.add(new BatteryRef(storage));
 			}
 		}
