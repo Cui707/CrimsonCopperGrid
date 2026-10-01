@@ -71,6 +71,10 @@ public class CableBlock extends Block {
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
 		Level level = context.getLevel();
+		// 26.3 实测结论：BlockPlaceContext.getClickedPos() 返回的就是「新方块将要放置的位置」。
+		// 旧版教程里的 getClickedPos().relative(getClickedFace()) 写法在这里会把位置推高一格
+		// （推到空气里），于是六个邻居全是空气、连接位永远是全 false。
+		// 这一点是用「[place] 日志里的 pos」与「存档里方块的实际落点」逐一比对确认的。
 		BlockPos pos = context.getClickedPos();
 		BlockState state = this.defaultBlockState();
 		if (level instanceof ServerLevel serverLevel) {
@@ -86,12 +90,14 @@ public class CableBlock extends Block {
 	protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
 		super.onPlace(state, level, pos, oldState, movedByPiston);
 		onTopologyChanged(level, pos);
+		notifyNeighbors(level, pos);
 	}
 
 	@Override
 	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
 		super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
 		onTopologyChanged(level, pos);
+		notifyNeighbors(level, pos);
 	}
 
 	@Override
@@ -105,6 +111,24 @@ public class CableBlock extends Block {
 			GridRegistry registry = GridRegistry.get(serverLevel);
 			registry.markDirty(pos);
 			registry.refreshAround(pos);
+		}
+	}
+
+	/**
+	 * 主动通知六邻「这里变过了」。
+	 *
+	 * <p>为什么必须显式做：{@code setBlock} 的 {@code UPDATE_NEIGHBORS} 只负责让邻居
+	 * 重算红石/比较器之类的常规方块更新，并不会让每个相邻电线方块都收到
+	 * {@code neighborChanged}，于是「新放的电线」不会让已有的电线重算连接位。
+	 * 表现就是：放置时算对的那些能连上，靠事后重算的那些永远是默认的全 false。
+	 */
+	private static void notifyNeighbors(Level level, BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		for (Direction side : Direction.values()) {
+			BlockPos neighbor = pos.relative(side);
+			if (level.isLoaded(neighbor)) {
+				level.neighborChanged(neighbor, state.getBlock(), null);
+			}
 		}
 	}
 

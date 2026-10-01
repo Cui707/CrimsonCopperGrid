@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.cyx.crimsoncoppergrid.CrimsonCopperGrid;
 import com.cyx.crimsoncoppergrid.block.CableBlock;
 import com.cyx.crimsoncoppergrid.block.SwitchBlock;
 
@@ -98,11 +99,12 @@ public final class GridRegistry {
 			return false;
 		}
 		BlockState state = level.getBlockState(neighbor);
-		if (SwitchBlock.isConductor(state)) {
+		// 邻居是电线或导通的电闸 -> 连
+		if (isConductor(state)) {
 			return true;
 		}
-		BlockEntity be = level.getBlockEntity(neighbor);
-		return be instanceof EnergyStorage;
+		// 邻居是带能量能力的设备 -> 连
+		return level.getBlockEntity(neighbor) instanceof EnergyStorage;
 	}
 
 	/** 该方块状态是否能导电（电线，或处于开启状态的电闸）。 */
