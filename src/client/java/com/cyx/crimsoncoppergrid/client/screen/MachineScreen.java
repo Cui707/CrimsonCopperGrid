@@ -27,6 +27,18 @@ import net.minecraft.world.inventory.Slot;
  * 直接借原版熔炉的容器贴图（176×166）当底图：它的下半部分本来就是标准的玩家背包，
  * 机器区则被一块原版底色的面板盖掉，换成各机器自己的布局。
  * <b>整个界面层不新增任何美术资源。</b>
+ *
+ * <h2>文字一律不画投影</h2>
+ * {@code GuiGraphicsExtractor} 的两套重载差别就在 {@code dropShadow}：
+ * <ul>
+ *   <li>{@code text(font, text, x, y, color)} —— 内部固定传 {@code dropShadow = true}；</li>
+ *   <li>{@code text(font, text, x, y, color, dropShadow)} —— 由调用方决定。</li>
+ * </ul>
+ * 原版 {@code AbstractContainerScreen#extractLabels} 画标题时用的是<b>不画投影</b>的那套。
+ * 中文方块字本来就笔画密，再叠一层偏移 1px 的暗色影子，在浅灰面板上会糊成
+ * 「重叠模糊」的一团——这正是本类以前的问题。所以这里统一走显式 {@code false}，
+ * 与原版标签保持一致。{@code centeredText} 没有带 {@code dropShadow} 的重载，
+ * 只能自己算居中位置。
  */
 public abstract class MachineScreen<T extends MachineMenu> extends AbstractContainerScreen<T> {
 
@@ -100,11 +112,23 @@ public abstract class MachineScreen<T extends MachineMenu> extends AbstractConta
 
 	/** 在界面上居中画一行字（{@code centerX} 是相对界面的中心线）。 */
 	protected void drawCenteredText(GuiGraphicsExtractor graphics, Component text, int centerX, int y, int color) {
-		graphics.centeredText(font, text, centerX, y, color);
+		graphics.text(font, text, centerX - font.width(text) / 2, y, color, false);
 	}
 
 	/** 左对齐画一行字。 */
 	protected void drawText(GuiGraphicsExtractor graphics, Component text, int x, int y, int color) {
-		graphics.text(font, text, x, y, color);
+		graphics.text(font, text, x, y, color, false);
+	}
+
+	/**
+	 * 标题居中 —— 与机器的做法一致（原版熔炉也在 {@code init} 里这么干）。
+	 *
+	 * <p>基类默认把标题放在左上角 {@code (8, 6)}，那是原版熔炉为了给燃料槽让位。
+	 * CCG 的机器区是自绘的整块面板，标题居中看着才像一台机器而不是一个木箱。
+	 */
+	@Override
+	protected void init() {
+		super.init();
+		titleLabelX = (imageWidth - font.width(title)) / 2;
 	}
 }

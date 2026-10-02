@@ -1,7 +1,6 @@
 package com.cyx.crimsoncoppergrid.common.menu;
 
 import com.cyx.crimsoncoppergrid.blockentity.SolarGeneratorBlockEntity;
-import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 
 import net.minecraft.world.entity.player.Inventory;
 
@@ -13,7 +12,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class SolarGeneratorMenu extends GeneratorMenu {
 
 	public SolarGeneratorMenu(int containerId, Inventory playerInventory) {
-		super(ModMenuTypes.SOLAR_GENERATOR, containerId, playerInventory, PowerAcceptorBlockEntity.DATA_COUNT);
+		super(ModMenuTypes.SOLAR_GENERATOR, containerId, playerInventory);
 	}
 
 	public SolarGeneratorMenu(int containerId, Inventory playerInventory, SolarGeneratorBlockEntity generator) {

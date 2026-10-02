@@ -1,24 +1,36 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "minecraft:block/furnace_front_on",
-    "top": "minecraft:block/furnace_front_on",
-    "front": "minecraft:block/iron_block",
-    "side": "minecraft:block/furnace_front_on",
-    "bottom": "minecraft:block/iron_block",
-    "back": "minecraft:block/furnace_front_on"
+    "particle": "minecraft:block/copper_block",
+    "all": "minecraft:block/copper_block",
+    "label": "crimsoncoppergrid:block/electric_furnace_label",
+    "label_en": "crimsoncoppergrid:block/electric_furnace_label_en"
   },
   "elements": [
     {
       "from": [0, 0, 0],
       "to": [16, 16, 16],
       "faces": {
-        "down": {"texture": "#bottom"},
-        "up": {"texture": "#top"},
-        "north": {"texture": "#front"},
-        "south": {"texture": "#back"},
-        "west": {"texture": "#side"},
-        "east": {"texture": "#side"}
+        "down": {"texture": "#all", "cullface": "down"},
+        "up": {"texture": "#all", "cullface": "up"},
+        "north": {"texture": "#all", "cullface": "north"},
+        "south": {"texture": "#all", "cullface": "south"},
+        "west": {"texture": "#all", "cullface": "west"},
+        "east": {"texture": "#all", "cullface": "east"}
+      }
+    },
+    {
+      "from": [1, 1, -0.05],
+      "to": [15, 15, 0.05],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#label"}
+      }
+    },
+    {
+      "from": [1, 1, 15.95],
+      "to": [15, 15, 16.05],
+      "faces": {
+        "south": {"uv": [0, 0, 16, 16], "texture": "#label_en"}
       }
     }
   ]

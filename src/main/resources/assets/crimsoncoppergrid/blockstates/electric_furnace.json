@@ -1,7 +1,12 @@
 {
   "variants": {
-    "": {
-      "model": "crimsoncoppergrid:block/electric_furnace"
-    }
+    "facing=north,active=false": {"model": "crimsoncoppergrid:block/electric_furnace"},
+    "facing=north,active=true": {"model": "crimsoncoppergrid:block/electric_furnace"},
+    "facing=east,active=false": {"model": "crimsoncoppergrid:block/electric_furnace", "y": 90},
+    "facing=east,active=true": {"model": "crimsoncoppergrid:block/electric_furnace", "y": 90},
+    "facing=south,active=false": {"model": "crimsoncoppergrid:block/electric_furnace", "y": 180},
+    "facing=south,active=true": {"model": "crimsoncoppergrid:block/electric_furnace", "y": 180},
+    "facing=west,active=false": {"model": "crimsoncoppergrid:block/electric_furnace", "y": 270},
+    "facing=west,active=true": {"model": "crimsoncoppergrid:block/electric_furnace", "y": 270}
   }
 }

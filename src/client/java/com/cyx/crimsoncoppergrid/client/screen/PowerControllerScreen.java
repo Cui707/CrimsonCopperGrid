@@ -35,26 +35,26 @@ public class PowerControllerScreen extends MachineScreen<PowerControllerMenu> {
 		}
 
 		int y = FIRST_LINE_Y;
-		graphics.text(font, Component.translatable("gui.crimsoncoppergrid.controller.cables",
+		drawText(graphics, Component.translatable("gui.crimsoncoppergrid.controller.cables",
 				menu.getCableCount(),
 				PowerSystem.getLocalizedPower(menu.getNetworkStored()),
 				PowerSystem.getLocalizedPower((long) menu.getCableCount() * CABLE_BUFFER)),
 				TEXT_X, y, LABEL_COLOR);
 		y += LINE_HEIGHT;
 
-		graphics.text(font, Component.translatable("gui.crimsoncoppergrid.controller.generators",
+		drawText(graphics, Component.translatable("gui.crimsoncoppergrid.controller.generators",
 				menu.getGeneratorCount(),
 				PowerSystem.getLocalizedPower(menu.getGeneratorOutput())),
 				TEXT_X, y, LABEL_COLOR);
 		y += LINE_HEIGHT;
 
-		graphics.text(font, Component.translatable("gui.crimsoncoppergrid.controller.consumers",
+		drawText(graphics, Component.translatable("gui.crimsoncoppergrid.controller.consumers",
 				menu.getConsumerCount(),
 				PowerSystem.getLocalizedPower(menu.getConsumerInput())),
 				TEXT_X, y, LABEL_COLOR);
 		y += LINE_HEIGHT;
 
-		graphics.text(font, Component.translatable("gui.crimsoncoppergrid.controller.batteries",
+		drawText(graphics, Component.translatable("gui.crimsoncoppergrid.controller.batteries",
 				menu.getBatteryCount(),
 				PowerSystem.getLocalizedPower(menu.getBatteryStored()),
 				PowerSystem.getLocalizedPower(menu.getBatteryCapacity())),

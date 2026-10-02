@@ -1,5 +1,7 @@
 package com.cyx.crimsoncoppergrid.blockentity;
 
+import java.util.Optional;
+
 import com.cyx.crimsoncoppergrid.common.menu.FuelGeneratorMenu;
 import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
@@ -7,23 +9,35 @@ import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 import org.jspecify.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.component.CookingFuel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * 燃料发电机：烧原版燃料换电。继承 {@link PowerAcceptorBlockEntity}，
  * 因此它自己就会把缓冲里的电推向四周的邻居。
  *
- * <p>数值与熔炉对齐：一个「燃料刻」产出 {@link #FE_PER_FUEL_TICK} FE，
- * 一块煤在熔炉里烧 1600 刻，在这里也就是 1600 × 40 = 64 000 FE。
+ * <p>数值与熔炉对齐：一个「燃料刻」产出 {@link #FE_PER_FUEL_TICK} FE。
+ * 原版燃料能烧多久，这里就烧多久，所以木头、煤炭、木炭、岩浆桶、干海带块……
+ * 只要原版熔炉能烧，这里都能烧。
  *
  * <p>为什么自己维护 {@code burnTime} 而不是复用原版 {@code AbstractFurnaceBlockEntity}：
  * 它的 {@code litTime} / {@code cookingProgress} 都是私有字段，只能靠反射硬塞，
@@ -99,14 +113,19 @@ public class FuelGeneratorBlockEntity extends PowerAcceptorBlockEntity implement
 
 	@Override
 	protected void serverTick() {
+		Level level = getLevel();
+		if (!(level instanceof ServerLevel serverLevel)) {
+			return;
+		}
+
 		boolean running = false;
 
 		if (burnTime <= 0) {
-			int value = fuelValue(fuel);
+			int value = fuelBurnTime(serverLevel, fuel);
 			if (value > 0) {
 				burnTime = value;
 				burnTimeTotal = value;
-				consumeFuel();
+				consumeFuel(serverLevel);
 			}
 		}
 
@@ -141,42 +160,64 @@ public class FuelGeneratorBlockEntity extends PowerAcceptorBlockEntity implement
 	}
 
 	/**
-	 * 原版燃料的燃烧时长（刻）。只列了常见燃料，与原版熔炉的取值一致。
+	 * 判断物品是否为原版燃料。
 	 *
-	 * <p>不直接查原版燃料表，是因为它的取值方式在各版本间变动过；
-	 * 这里显式列出，行为可预期，也方便按模组的平衡需要单独调整。
+	 * <p>1.21.2+ 把燃料信息放在 {@link DataComponents#COOKING_FUEL} 组件里，
+	 * 数据驱动，不需要自己维护一个长列表。这里的判定只看组件是否存在，
+	 * 客户端与服务端结论完全一致，因此 {@link #canPlaceItem} 可以放心用它。
 	 */
-	private static int fuelValue(ItemStack stack) {
-		if (stack.isEmpty()) {
-			return 0;
-		}
-		if (stack.is(Items.COAL) || stack.is(Items.CHARCOAL)) {
-			return 1600;
-		}
-		if (stack.is(Items.COAL_BLOCK)) {
-			return 16000;
-		}
-		if (stack.is(Items.BLAZE_ROD)) {
-			return 2400;
-		}
-		if (stack.is(Items.DRIED_KELP_BLOCK)) {
-			return 4001;
-		}
-		if (stack.is(Items.LAVA_BUCKET)) {
-			return 20000;
-		}
-		if (stack.is(Items.BAMBOO)) {
-			return 50;
-		}
-		return 0;
+	public static boolean isFuel(ItemStack stack) {
+		return !stack.isEmpty() && stack.has(DataComponents.COOKING_FUEL);
 	}
 
-	private void consumeFuel() {
-		// 26.3 的燃料余料是 ItemStackTemplate（例如岩浆桶 -> 空桶），用 create() 变回 ItemStack
-		ItemStack remainder = fuel.getItem().getCraftingRemainder().create();
+	/**
+	 * 一件燃料能烧多久（刻）。
+	 *
+	 * <p>原版燃料数据用 {@link CookingFuel} 组件保存，里面可能引用
+	 * {@code context_int_provider}（例如快烧方块会缩短时间），所以需要一个
+	 * 包含本方块状态的 {@link LootContext} 才能算出真正数值。
+	 *
+	 * <h2>四个参数一个都不能少</h2>
+	 * {@code CONTAINER_PROCESS} 这套参数表要求
+	 * {@code BLOCK_STATE}、{@code BLOCK_ENTITY}、{@code ORIGIN}、{@code CONTAINER}
+	 * 四项齐全，少任何一项 {@code create()} 都会抛
+	 * {@code IllegalArgumentException: Missing required parameters}。
+	 * {@code CONTAINER} 要的是 {@link net.minecraft.world.entity.SlotProvider}，
+	 * 本类已经实现 {@link net.minecraft.world.Container}（它继承 SlotProvider），
+	 * 所以直接传 {@code this} 即可 —— 原版
+	 * {@code BaseContainerBlockEntity#getLootContext} 就是这么写的。
+	 *
+	 * <p>曾经漏掉 {@code CONTAINER} 一项，结果发电机每 tick 抛异常、
+	 * 世界一加载就崩，只能删档。改动这里时请一并核对参数表。
+	 */
+	private int fuelBurnTime(ServerLevel level, ItemStack stack) {
+		if (!isFuel(stack)) {
+			return 0;
+		}
+		LootParams params = new LootParams.Builder(level)
+				.withParameter(LootContextParams.BLOCK_STATE, getBlockState())
+				.withParameter(LootContextParams.BLOCK_ENTITY, this)
+				.withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(getBlockPos()))
+				.withParameter(LootContextParams.CONTAINER, this)
+				.create(LootContextParamSets.CONTAINER_PROCESS);
+		LootContext context = new LootContext.Builder(params).create(Optional.empty());
+		return ResolvableInt.getFromItem(stack, DataComponents.COOKING_FUEL, CookingFuel::burnTime, context, 0);
+	}
+
+	private void consumeFuel(ServerLevel level) {
+		// 26.3 的燃料余料是 ItemStackTemplate（例如岩浆桶 -> 空桶）。
+		// 注意它可能为 null —— 绝大多数燃料（煤、木头……）都没有余料，
+		// 直接 .create() 会 NPE 并把世界 tick 崩掉。
+		ItemStackTemplate remainder = fuel.getItem().getCraftingRemainder();
 		fuel.shrink(1);
-		if (fuel.isEmpty() && !remainder.isEmpty()) {
-			fuel = remainder;
+		if (remainder != null) {
+			ItemStack result = remainder.create();
+			if (fuel.isEmpty()) {
+				fuel = result;
+			} else {
+				// 槽里还剩着燃料时余料塞不进去，按原版熔炉的做法丢到方块旁
+				Containers.dropItemStack(level, getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(), result);
+			}
 		}
 		setChanged();
 	}
@@ -222,7 +263,7 @@ public class FuelGeneratorBlockEntity extends PowerAcceptorBlockEntity implement
 
 	@Override
 	public boolean canPlaceItem(int slot, ItemStack stack) {
-		return fuelValue(stack) > 0;
+		return isFuel(stack);
 	}
 
 	@Override
@@ -257,7 +298,7 @@ public class FuelGeneratorBlockEntity extends PowerAcceptorBlockEntity implement
 		super.loadAdditional(input);
 		this.burnTime = input.getIntOr(KEY_BURN_TIME, 0);
 		this.burnTimeTotal = input.getIntOr(KEY_BURN_TIME_TOTAL, 0);
-		this.fuel = input.read(KEY_FUEL, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+		this.fuel = input.read(KEY_FUEL, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
 	}
 
 	@Override
@@ -265,6 +306,6 @@ public class FuelGeneratorBlockEntity extends PowerAcceptorBlockEntity implement
 		super.saveAdditional(output);
 		output.putInt(KEY_BURN_TIME, burnTime);
 		output.putInt(KEY_BURN_TIME_TOTAL, burnTimeTotal);
-		output.store(KEY_FUEL, ItemStack.CODEC, fuel);
+		output.store(KEY_FUEL, ItemStack.OPTIONAL_CODEC, fuel);
 	}
 }

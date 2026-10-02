@@ -2,23 +2,35 @@
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "minecraft:block/copper_block",
-    "top": "minecraft:block/iron_block",
-    "front": "minecraft:block/redstone_block",
-    "side": "minecraft:block/copper_block",
-    "bottom": "minecraft:block/iron_block",
-    "back": "minecraft:block/copper_block"
+    "all": "minecraft:block/copper_block",
+    "label": "crimsoncoppergrid:block/power_controller_label",
+    "label_en": "crimsoncoppergrid:block/power_controller_label_en"
   },
   "elements": [
     {
       "from": [0, 0, 0],
       "to": [16, 16, 16],
       "faces": {
-        "down": {"texture": "#bottom"},
-        "up": {"texture": "#top"},
-        "north": {"texture": "#front"},
-        "south": {"texture": "#back"},
-        "west": {"texture": "#side"},
-        "east": {"texture": "#side"}
+        "down": {"texture": "#all", "cullface": "down"},
+        "up": {"texture": "#all", "cullface": "up"},
+        "north": {"texture": "#all", "cullface": "north"},
+        "south": {"texture": "#all", "cullface": "south"},
+        "west": {"texture": "#all", "cullface": "west"},
+        "east": {"texture": "#all", "cullface": "east"}
+      }
+    },
+    {
+      "from": [1, 1, -0.05],
+      "to": [15, 15, 0.05],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#label"}
+      }
+    },
+    {
+      "from": [1, 1, 15.95],
+      "to": [15, 15, 16.05],
+      "faces": {
+        "south": {"uv": [0, 0, 16, 16], "texture": "#label_en"}
       }
     }
   ]

@@ -5,7 +5,6 @@ import com.cyx.crimsoncoppergrid.common.menu.ModMenuTypes;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 import com.cyx.crimsoncoppergrid.init.ModBlocks;
 import com.cyx.crimsoncoppergrid.init.ModCreativeTab;
-import com.cyx.crimsoncoppergrid.init.ModItems;
 import com.cyx.crimsoncoppergrid.init.ModPowerRegistration;
 
 import net.fabricmc.api.ModInitializer;
@@ -35,10 +34,9 @@ public class CrimsonCopperGrid implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		// 注册顺序有讲究：方块 -> 方块实体（要引用方块）-> 物品 -> 物品栏
+		// 注册顺序有讲究：方块 -> 方块实体 -> 创造模式物品栏
 		ModBlocks.init();
 		ModBlockEntities.init();
-		ModItems.init();
 		ModCreativeTab.init();
 
 		// 界面：菜单类型（屏幕那半在客户端入口注册）

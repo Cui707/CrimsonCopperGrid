@@ -1,7 +1,6 @@
 package com.cyx.crimsoncoppergrid.common.menu;
 
 import com.cyx.crimsoncoppergrid.blockentity.WindGeneratorBlockEntity;
-import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 
 import net.minecraft.world.entity.player.Inventory;
 
@@ -13,7 +12,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class WindGeneratorMenu extends GeneratorMenu {
 
 	public WindGeneratorMenu(int containerId, Inventory playerInventory) {
-		super(ModMenuTypes.WIND_GENERATOR, containerId, playerInventory, PowerAcceptorBlockEntity.DATA_COUNT);
+		super(ModMenuTypes.WIND_GENERATOR, containerId, playerInventory);
 	}
 
 	public WindGeneratorMenu(int containerId, Inventory playerInventory, WindGeneratorBlockEntity generator) {

@@ -8,14 +8,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 /**
- * 三台「只有电、没有物品栏」的设备共用的面板：太阳能、风力、电力岩浆机。
+ * 两台「只有电、没有物品栏」的发电机共用的面板：太阳能、风力。
  *
  * <p>统一画一根电量条 + 一行「存量 / 容量」，下面留给子类写各自的两行说明。
  * 说明文字里的数值直接引用方块实体上的公开常量（例如
  * {@code SolarGeneratorBlockEntity.MAX_OUTPUT}）—— 它们都是编译期常量，
  * 客户端不需要任何额外的同步就能显示正确。
- *
- * <p>唯一需要同步的动态读数是岩浆机的罐内量，走 {@link GeneratorMenu#getTank()}。
  *
  * <h2>为什么不用界面里那台机器的「实时输出」</h2>
  * 发电量是在服务端的 tick 里算的，客户端拿不到（{@code currentOutput()} 在客户端恒为 0）。

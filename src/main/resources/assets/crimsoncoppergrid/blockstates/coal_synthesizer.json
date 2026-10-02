@@ -1,7 +1,12 @@
 {
   "variants": {
-    "": {
-      "model": "crimsoncoppergrid:block/coal_synthesizer"
-    }
+    "facing=north,active=false": {"model": "crimsoncoppergrid:block/coal_synthesizer"},
+    "facing=north,active=true": {"model": "crimsoncoppergrid:block/coal_synthesizer"},
+    "facing=east,active=false": {"model": "crimsoncoppergrid:block/coal_synthesizer", "y": 90},
+    "facing=east,active=true": {"model": "crimsoncoppergrid:block/coal_synthesizer", "y": 90},
+    "facing=south,active=false": {"model": "crimsoncoppergrid:block/coal_synthesizer", "y": 180},
+    "facing=south,active=true": {"model": "crimsoncoppergrid:block/coal_synthesizer", "y": 180},
+    "facing=west,active=false": {"model": "crimsoncoppergrid:block/coal_synthesizer", "y": 270},
+    "facing=west,active=true": {"model": "crimsoncoppergrid:block/coal_synthesizer", "y": 270}
   }
 }

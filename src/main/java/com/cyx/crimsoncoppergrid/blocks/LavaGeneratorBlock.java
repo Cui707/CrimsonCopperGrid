@@ -3,26 +3,16 @@ package com.cyx.crimsoncoppergrid.blocks;
 import com.cyx.crimsoncoppergrid.blockentity.LavaGeneratorBlockEntity;
 import com.cyx.crimsoncoppergrid.common.blocks.BlockMachineBase;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * 电力岩浆机。
  *
- * <p>右键交互：拿岩浆桶倒进去、拿空桶舀出来；空手右键打开界面
- * （见 {@link BlockMachineBase#useWithoutItem}，岩浆量在面板里显示）。
+ * <p>桶的进出现在通过界面完成：左侧放空桶，右侧出岩浆桶。
+ * 方块层不再重写 {@code useItemOn}，直接继承基类 —— 任何情况下右键都能打开界面。
+ * 详见 {@link BlockMachineBase#useWithoutItem}。
  */
 public class LavaGeneratorBlock extends BlockMachineBase {
 
@@ -33,41 +23,5 @@ public class LavaGeneratorBlock extends BlockMachineBase {
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new LavaGeneratorBlockEntity(pos, state);
-	}
-
-	@Override
-	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
-			InteractionHand hand, BlockHitResult hit) {
-		if (!(level.getBlockEntity(pos) instanceof LavaGeneratorBlockEntity machine)) {
-			return InteractionResult.PASS;
-		}
-		boolean lavaBucket = stack.is(Items.LAVA_BUCKET);
-		boolean emptyBucket = stack.is(Items.BUCKET);
-		if (!lavaBucket && !emptyBucket) {
-			return InteractionResult.PASS;
-		}
-		if (level.isClientSide()) {
-			return InteractionResult.SUCCESS;
-		}
-
-		ItemStack replacement = lavaBucket ? machine.drainBucket() : machine.fillBucket();
-		if (replacement.isEmpty()) {
-			player.sendSystemMessage(Component.translatable(lavaBucket
-					? "block.crimsoncoppergrid.lava_generator.tank_full"
-					: "block.crimsoncoppergrid.lava_generator.tank_empty").withStyle(ChatFormatting.RED));
-			return InteractionResult.SUCCESS_SERVER;
-		}
-
-		if (!player.hasInfiniteMaterials()) {
-			stack.shrink(1);
-			if (stack.isEmpty()) {
-				player.setItemInHand(hand, replacement);
-			} else if (!player.getInventory().add(replacement)) {
-				player.drop(replacement, false, net.minecraft.util.Prediction.SERVER_ONLY);
-			}
-		}
-		level.playSound(null, pos, lavaBucket ? SoundEvents.BUCKET_EMPTY_LAVA : SoundEvents.BUCKET_FILL_LAVA,
-				SoundSource.BLOCKS, 1.0F, 1.0F);
-		return InteractionResult.SUCCESS_SERVER;
 	}
 }
