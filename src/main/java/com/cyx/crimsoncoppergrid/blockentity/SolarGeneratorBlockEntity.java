@@ -1,9 +1,17 @@
 package com.cyx.crimsoncoppergrid.blockentity;
 
+import com.cyx.crimsoncoppergrid.common.menu.SolarGeneratorMenu;
 import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
+import org.jspecify.annotations.Nullable;
+
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,7 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * 缓冲满了自然就不再增加，限流是免费的。之后的传输由
  * {@link PowerAcceptorBlockEntity} 的推流逻辑负责，这里不用管。
  */
-public class SolarGeneratorBlockEntity extends PowerAcceptorBlockEntity {
+public class SolarGeneratorBlockEntity extends PowerAcceptorBlockEntity implements MenuProvider {
 
 	/** 每 tick 的发电量。 */
 	public static final long MAX_OUTPUT = 20L;
@@ -79,5 +87,18 @@ public class SolarGeneratorBlockEntity extends PowerAcceptorBlockEntity {
 
 	public boolean isGenerating() {
 		return currentOutput() > 0;
+	}
+
+	// ------------------------------------------------------------ 界面
+
+	@Override
+	public Component getDisplayName() {
+		return Component.translatable("block.crimsoncoppergrid.solar_generator");
+	}
+
+	@Nullable
+	@Override
+	public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+		return new SolarGeneratorMenu(containerId, playerInventory, this);
 	}
 }

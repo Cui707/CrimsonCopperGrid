@@ -1,8 +1,13 @@
 package com.cyx.crimsoncoppergrid.client;
 
 import com.cyx.crimsoncoppergrid.client.screen.BatteryScreen;
+import com.cyx.crimsoncoppergrid.client.screen.CoalSynthesizerScreen;
 import com.cyx.crimsoncoppergrid.client.screen.ElectricFurnaceScreen;
+import com.cyx.crimsoncoppergrid.client.screen.FuelGeneratorScreen;
+import com.cyx.crimsoncoppergrid.client.screen.LavaGeneratorScreen;
 import com.cyx.crimsoncoppergrid.client.screen.PowerControllerScreen;
+import com.cyx.crimsoncoppergrid.client.screen.SolarGeneratorScreen;
+import com.cyx.crimsoncoppergrid.client.screen.WindGeneratorScreen;
 import com.cyx.crimsoncoppergrid.common.menu.ModMenuTypes;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -21,6 +26,11 @@ public class CrimsonCopperGridClient implements ClientModInitializer {
 	public void onInitializeClient() {
 		MenuScreens.register(ModMenuTypes.BATTERY, BatteryScreen::new);
 		MenuScreens.register(ModMenuTypes.ELECTRIC_FURNACE, ElectricFurnaceScreen::new);
+		MenuScreens.register(ModMenuTypes.FUEL_GENERATOR, FuelGeneratorScreen::new);
+		MenuScreens.register(ModMenuTypes.COAL_SYNTHESIZER, CoalSynthesizerScreen::new);
+		MenuScreens.register(ModMenuTypes.SOLAR_GENERATOR, SolarGeneratorScreen::new);
+		MenuScreens.register(ModMenuTypes.WIND_GENERATOR, WindGeneratorScreen::new);
+		MenuScreens.register(ModMenuTypes.LAVA_GENERATOR, LavaGeneratorScreen::new);
 		MenuScreens.register(ModMenuTypes.POWER_CONTROLLER, PowerControllerScreen::new);
 	}
 }

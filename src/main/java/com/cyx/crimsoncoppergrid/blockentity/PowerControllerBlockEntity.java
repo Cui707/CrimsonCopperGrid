@@ -1,6 +1,7 @@
 package com.cyx.crimsoncoppergrid.blockentity;
 
 import com.cyx.crimsoncoppergrid.common.blockentity.MachineBaseBlockEntity;
+import com.cyx.crimsoncoppergrid.common.menu.ContainerDataCodec;
 import com.cyx.crimsoncoppergrid.common.menu.PowerControllerMenu;
 import com.cyx.crimsoncoppergrid.common.powerSystem.GridStats;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
@@ -36,24 +37,21 @@ public class PowerControllerBlockEntity extends MachineBaseBlockEntity implement
 	private static final long RESCAN_INTERVAL = 20;
 
 	// ------------------------------------------------------------ 界面数据
-	// 与 PowerAcceptorBlockEntity 一样，长整型按「低 32 位 + 高 32 位」拆两格。
+	// 与 PowerAcceptorBlockEntity 同样按 16 位一组拆 long，见 ContainerDataCodec。
+	// 五个 long 各占 SLOTS_PER_LONG（= 4）格，后面再跟五个小整数。
 
-	public static final int DATA_GENERATOR_OUTPUT_LOW = 0;
-	public static final int DATA_GENERATOR_OUTPUT_HIGH = 1;
-	public static final int DATA_CONSUMER_INPUT_LOW = 2;
-	public static final int DATA_CONSUMER_INPUT_HIGH = 3;
-	public static final int DATA_BATTERY_STORED_LOW = 4;
-	public static final int DATA_BATTERY_STORED_HIGH = 5;
-	public static final int DATA_BATTERY_CAPACITY_LOW = 6;
-	public static final int DATA_BATTERY_CAPACITY_HIGH = 7;
-	public static final int DATA_NETWORK_STORED_LOW = 8;
-	public static final int DATA_NETWORK_STORED_HIGH = 9;
-	public static final int DATA_CABLE_COUNT = 10;
-	public static final int DATA_GENERATOR_COUNT = 11;
-	public static final int DATA_CONSUMER_COUNT = 12;
-	public static final int DATA_BATTERY_COUNT = 13;
-	public static final int DATA_CONNECTED = 14;
-	public static final int DATA_COUNT = 15;
+	public static final int DATA_GENERATOR_OUTPUT = 0;
+	public static final int DATA_CONSUMER_INPUT = DATA_GENERATOR_OUTPUT + ContainerDataCodec.SLOTS_PER_LONG;
+	public static final int DATA_BATTERY_STORED = DATA_CONSUMER_INPUT + ContainerDataCodec.SLOTS_PER_LONG;
+	public static final int DATA_BATTERY_CAPACITY = DATA_BATTERY_STORED + ContainerDataCodec.SLOTS_PER_LONG;
+	public static final int DATA_NETWORK_STORED = DATA_BATTERY_CAPACITY + ContainerDataCodec.SLOTS_PER_LONG;
+	/** 以下五个是计数器，量级远小于 16 位上限，单格直传即可。 */
+	public static final int DATA_CABLE_COUNT = DATA_NETWORK_STORED + ContainerDataCodec.SLOTS_PER_LONG;
+	public static final int DATA_GENERATOR_COUNT = DATA_CABLE_COUNT + 1;
+	public static final int DATA_CONSUMER_COUNT = DATA_CABLE_COUNT + 2;
+	public static final int DATA_BATTERY_COUNT = DATA_CABLE_COUNT + 3;
+	public static final int DATA_CONNECTED = DATA_CABLE_COUNT + 4;
+	public static final int DATA_COUNT = DATA_CABLE_COUNT + 5;
 
 	private GridStats stats = GridStats.DISCONNECTED;
 
@@ -83,17 +81,27 @@ public class PowerControllerBlockEntity extends MachineBaseBlockEntity implement
 
 	@Override
 	public int get(int index) {
+		if (ContainerDataCodec.covers(index, DATA_GENERATOR_OUTPUT)) {
+			return ContainerDataCodec.write(stats.generatorOutput(),
+					ContainerDataCodec.chunkOf(index, DATA_GENERATOR_OUTPUT));
+		}
+		if (ContainerDataCodec.covers(index, DATA_CONSUMER_INPUT)) {
+			return ContainerDataCodec.write(stats.consumerInput(),
+					ContainerDataCodec.chunkOf(index, DATA_CONSUMER_INPUT));
+		}
+		if (ContainerDataCodec.covers(index, DATA_BATTERY_STORED)) {
+			return ContainerDataCodec.write(stats.batteryStored(),
+					ContainerDataCodec.chunkOf(index, DATA_BATTERY_STORED));
+		}
+		if (ContainerDataCodec.covers(index, DATA_BATTERY_CAPACITY)) {
+			return ContainerDataCodec.write(stats.batteryCapacity(),
+					ContainerDataCodec.chunkOf(index, DATA_BATTERY_CAPACITY));
+		}
+		if (ContainerDataCodec.covers(index, DATA_NETWORK_STORED)) {
+			return ContainerDataCodec.write(stats.networkStored(),
+					ContainerDataCodec.chunkOf(index, DATA_NETWORK_STORED));
+		}
 		return switch (index) {
-			case DATA_GENERATOR_OUTPUT_LOW -> (int) (stats.generatorOutput() & 0xFFFFFFFFL);
-			case DATA_GENERATOR_OUTPUT_HIGH -> (int) (stats.generatorOutput() >> 32);
-			case DATA_CONSUMER_INPUT_LOW -> (int) (stats.consumerInput() & 0xFFFFFFFFL);
-			case DATA_CONSUMER_INPUT_HIGH -> (int) (stats.consumerInput() >> 32);
-			case DATA_BATTERY_STORED_LOW -> (int) (stats.batteryStored() & 0xFFFFFFFFL);
-			case DATA_BATTERY_STORED_HIGH -> (int) (stats.batteryStored() >> 32);
-			case DATA_BATTERY_CAPACITY_LOW -> (int) (stats.batteryCapacity() & 0xFFFFFFFFL);
-			case DATA_BATTERY_CAPACITY_HIGH -> (int) (stats.batteryCapacity() >> 32);
-			case DATA_NETWORK_STORED_LOW -> (int) (stats.networkStored() & 0xFFFFFFFFL);
-			case DATA_NETWORK_STORED_HIGH -> (int) (stats.networkStored() >> 32);
 			case DATA_CABLE_COUNT -> stats.cables();
 			case DATA_GENERATOR_COUNT -> stats.generators();
 			case DATA_CONSUMER_COUNT -> stats.consumers();

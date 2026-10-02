@@ -1,9 +1,17 @@
 package com.cyx.crimsoncoppergrid.blockentity;
 
+import com.cyx.crimsoncoppergrid.common.menu.FuelGeneratorMenu;
 import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
+import org.jspecify.annotations.Nullable;
+
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,9 +34,29 @@ import net.minecraft.world.level.storage.ValueOutput;
  * 于是 {@code getMaxInput(face)} 恒为 0，外部往它插电会被直接拒绝。
  * 这不需要在 {@code canAcceptEnergy} 里额外判断。
  */
-public class FuelGeneratorBlockEntity extends PowerAcceptorBlockEntity {
+public class FuelGeneratorBlockEntity extends PowerAcceptorBlockEntity implements MenuProvider {
 
 	public static final int SLOT_FUEL = 0;
+	public static final int SLOT_COUNT = 1;
+
+	// ---- 界面数据：在父类的「电量 + 容量」四格之后追加燃烧进度 ----
+	public static final int DATA_BURN_TIME = PowerAcceptorBlockEntity.DATA_COUNT;
+	public static final int DATA_BURN_TIME_TOTAL = PowerAcceptorBlockEntity.DATA_COUNT + 1;
+	public static final int DATA_COUNT = PowerAcceptorBlockEntity.DATA_COUNT + 2;
+
+	@Override
+	public int getCount() {
+		return DATA_COUNT;
+	}
+
+	@Override
+	public int get(int index) {
+		return switch (index) {
+			case DATA_BURN_TIME -> burnTime;
+			case DATA_BURN_TIME_TOTAL -> burnTimeTotal;
+			default -> super.get(index);
+		};
+	}
 
 	/** 一个燃料刻产生的能量。 */
 	public static final long FE_PER_FUEL_TICK = 40L;
@@ -157,7 +185,7 @@ public class FuelGeneratorBlockEntity extends PowerAcceptorBlockEntity {
 
 	@Override
 	public int getContainerSize() {
-		return 1;
+		return SLOT_COUNT;
 	}
 
 	@Override
@@ -200,6 +228,19 @@ public class FuelGeneratorBlockEntity extends PowerAcceptorBlockEntity {
 	@Override
 	public void clearContent() {
 		fuel = ItemStack.EMPTY;
+	}
+
+	// ------------------------------------------------------------ 界面
+
+	@Override
+	public Component getDisplayName() {
+		return Component.translatable("block.crimsoncoppergrid.fuel_generator");
+	}
+
+	@Nullable
+	@Override
+	public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+		return new FuelGeneratorMenu(containerId, playerInventory, this);
 	}
 
 	// ------------------------------------------------------------ 同步与存档

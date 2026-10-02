@@ -75,11 +75,11 @@ public class ElectricFurnaceMenu extends MachineMenu {
 	// ------------------------------------------------------------ 界面读取
 
 	public long getStored() {
-		return readLong(PowerAcceptorBlockEntity.DATA_STORED_LOW);
+		return readLong(PowerAcceptorBlockEntity.DATA_STORED);
 	}
 
 	public long getCapacity() {
-		return readLong(PowerAcceptorBlockEntity.DATA_CAPACITY_LOW);
+		return readLong(PowerAcceptorBlockEntity.DATA_CAPACITY);
 	}
 
 	public int getProgress() {

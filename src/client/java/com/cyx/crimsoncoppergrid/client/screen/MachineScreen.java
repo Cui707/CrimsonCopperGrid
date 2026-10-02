@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 /**
  * 所有 CCG 机器界面的公共父类。
@@ -32,6 +33,18 @@ public abstract class MachineScreen<T extends MachineMenu> extends AbstractConta
 	/** 原版熔炉容器贴图：176×166，含标准玩家背包区。 */
 	private static final Identifier BACKGROUND =
 			Identifier.withDefaultNamespace("textures/gui/container/furnace.png");
+
+	/**
+	 * 原版槽位底图（18×18）。
+	 *
+	 * <p>槽位凹槽原本是**画在容器贴图里**的，不是由原版单独绘制 ——
+	 * 26.3 的 {@code AbstractContainerScreen#extractSlot} 只画物品与高亮，
+	 * 底框仍然来自 {@code extractBackground} 里贴的那张图。
+	 * 所以一旦用面板色盖掉熔炉的机器区，那几个槽位就跟着没了，
+	 * 必须按槽位坐标把底图补画回来。
+	 */
+	private static final Identifier SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot");
+	private static final int SLOT_SPRITE_SIZE = 18;
 
 	/** 原版容器界面的底色（浅灰）。 */
 	protected static final int PANEL_COLOR = 0xFFC6C6C6;
@@ -58,6 +71,16 @@ public abstract class MachineScreen<T extends MachineMenu> extends AbstractConta
 
 		// 原版贴图的机器区画的是熔炉自己的槽位与火焰，这里盖成一块干净面板
 		graphics.fill(leftPos + 7, topPos + 16, leftPos + 169, topPos + 78, PANEL_COLOR);
+
+		// 上一步把熔炉贴图里的槽位凹槽一起盖掉了，按槽位坐标补画回来。
+		// 机器槽位恒定排在前面（见 MachineMenu#machineSlotCount），玩家背包的槽位
+		// 在下半部分、没有被盖到，不需要重画。
+		int machineSlots = menu.machineSlotCount();
+		for (int index = 0; index < machineSlots; index++) {
+			Slot slot = menu.slots.get(index);
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SPRITE,
+					leftPos + slot.x - 1, topPos + slot.y - 1, SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE);
+		}
 	}
 
 	/**
@@ -78,5 +101,10 @@ public abstract class MachineScreen<T extends MachineMenu> extends AbstractConta
 	/** 在界面上居中画一行字（{@code centerX} 是相对界面的中心线）。 */
 	protected void drawCenteredText(GuiGraphicsExtractor graphics, Component text, int centerX, int y, int color) {
 		graphics.centeredText(font, text, centerX, y, color);
+	}
+
+	/** 左对齐画一行字。 */
+	protected void drawText(GuiGraphicsExtractor graphics, Component text, int x, int y, int color) {
+		graphics.text(font, text, x, y, color);
 	}
 }

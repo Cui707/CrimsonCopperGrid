@@ -3,9 +3,7 @@ package com.cyx.crimsoncoppergrid.blocks;
 import com.cyx.crimsoncoppergrid.blockentity.CoalSynthesizerBlockEntity;
 import com.cyx.crimsoncoppergrid.common.blocks.BlockMachineBase;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +16,8 @@ import net.minecraft.world.phys.BlockHitResult;
 /**
  * 电力煤炭合成机。
  *
- * <p>手持物品右键 = 把攒下的煤炭全部收进背包；空手右键 = 查看当前进度。
+ * <p>手持物品右键 = 把攒下的煤炭全部收进背包（快捷方式）；空手右键 = 打开界面
+ * （见 {@link BlockMachineBase#useWithoutItem}，界面里有一个产物槽，也能取煤）。
  * 产出的煤也会每 20 刻自动尝试送进相邻容器，送不进去就攒着等玩家来取。
  */
 public class CoalSynthesizerBlock extends BlockMachineBase {
@@ -36,20 +35,6 @@ public class CoalSynthesizerBlock extends BlockMachineBase {
 	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
 			InteractionHand hand, BlockHitResult hit) {
 		return takeCoal(level, pos, player);
-	}
-
-	@Override
-	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
-			BlockHitResult hit) {
-		if (level.isClientSide()) {
-			return InteractionResult.SUCCESS;
-		}
-		if (level.getBlockEntity(pos) instanceof CoalSynthesizerBlockEntity machine) {
-			int percent = (int) (machine.getStored() * 100 / CoalSynthesizerBlockEntity.FE_PER_COAL);
-			player.sendSystemMessage(Component.translatable("block.crimsoncoppergrid.coal_synthesizer.status",
-					machine.getCoal(), percent).withStyle(ChatFormatting.GOLD));
-		}
-		return InteractionResult.SUCCESS_SERVER;
 	}
 
 	/** 把机器里攒的煤全部塞给玩家。 */

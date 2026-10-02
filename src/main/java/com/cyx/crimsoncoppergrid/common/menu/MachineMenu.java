@@ -61,21 +61,25 @@ public abstract class MachineMenu extends AbstractContainerMenu {
 	/**
 	 * 从 {@link ContainerData} 里读回一个 64 位值。
 	 *
-	 * <p>{@code ContainerData} 只有 {@code int} 槽位，所以长整型按「低 32 位 + 高 32 位」
-	 * 占两格存放。电量动辄上百万，用 int 会溢出，必须这么拆。
-	 * 两个 index 的约定见 {@code PowerAcceptorBlockEntity} 里的 {@code DATA_*} 常量。
+	 * <p>长整型在网络上是按 16 位一组、共四格传过来的 —— 为什么要这样拆，
+	 * 以及为什么不能按「低 32 位 + 高 32 位」拆，见 {@link ContainerDataCodec}。
+	 *
+	 * @param firstIndex 该值第一格的下标，见 {@code PowerAcceptorBlockEntity} 的 {@code DATA_*} 常量
 	 */
-	protected long readLong(int lowIndex) {
-		long low = data.get(lowIndex) & 0xFFFFFFFFL;
-		long high = (long) data.get(lowIndex + 1) << 32;
-		return low | high;
+	protected long readLong(int firstIndex) {
+		return ContainerDataCodec.read(data, firstIndex);
 	}
 
 	/** 子类在这里 {@code addSlot}。没有物品槽的机器留空即可。 */
 	protected abstract void addMachineSlots(Container machine);
 
-	/** 机器自己占用的槽位数量；玩家背包从它之后开始。 */
-	protected int machineSlotCount() {
+	/**
+	 * 机器自己占用的槽位数量；玩家背包从它之后开始。
+	 *
+	 * <p>客户端屏幕要用它来区分「哪些是机器槽位」（前 {@code machineSlotCount} 个），
+	 * 因为背景贴图被自绘面板盖过之后，需要按槽位坐标把底框补画回来。
+	 */
+	public int machineSlotCount() {
 		return machine.getContainerSize();
 	}
 

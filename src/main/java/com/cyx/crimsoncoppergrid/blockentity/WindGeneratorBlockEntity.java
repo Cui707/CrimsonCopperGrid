@@ -1,9 +1,17 @@
 package com.cyx.crimsoncoppergrid.blockentity;
 
+import com.cyx.crimsoncoppergrid.common.menu.WindGeneratorMenu;
 import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
+import org.jspecify.annotations.Nullable;
+
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -14,7 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * {@link #MAX_OUTPUT} FE/t。正上方需要有一格空间作为「迎风面」——
  * 埋在地里或封死在天花板下不发电。
  */
-public class WindGeneratorBlockEntity extends PowerAcceptorBlockEntity {
+public class WindGeneratorBlockEntity extends PowerAcceptorBlockEntity implements MenuProvider {
 
 	public static final long MIN_OUTPUT = 10L;
 	public static final long MAX_OUTPUT = 30L;
@@ -75,5 +83,18 @@ public class WindGeneratorBlockEntity extends PowerAcceptorBlockEntity {
 
 	public boolean isGenerating() {
 		return currentOutput() > 0;
+	}
+
+	// ------------------------------------------------------------ 界面
+
+	@Override
+	public Component getDisplayName() {
+		return Component.translatable("block.crimsoncoppergrid.wind_generator");
+	}
+
+	@Nullable
+	@Override
+	public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+		return new WindGeneratorMenu(containerId, playerInventory, this);
 	}
 }

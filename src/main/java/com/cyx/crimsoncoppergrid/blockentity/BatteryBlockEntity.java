@@ -1,6 +1,7 @@
 package com.cyx.crimsoncoppergrid.blockentity;
 
 import com.cyx.crimsoncoppergrid.common.menu.BatteryMenu;
+import com.cyx.crimsoncoppergrid.common.menu.ContainerDataCodec;
 import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
@@ -37,10 +38,9 @@ public class BatteryBlockEntity extends PowerAcceptorBlockEntity implements Menu
 	/** 单 tick 的输入 / 输出上限。 */
 	public static final long MAX_IO = 1_000L;
 
-	// ---- 界面数据：在父类的「电量 + 容量」四格之后追加净流量 ----
-	public static final int DATA_POWER_CHANGE_LOW = PowerAcceptorBlockEntity.DATA_COUNT;
-	public static final int DATA_POWER_CHANGE_HIGH = PowerAcceptorBlockEntity.DATA_COUNT + 1;
-	public static final int DATA_COUNT = PowerAcceptorBlockEntity.DATA_COUNT + 2;
+	// ---- 界面数据：在父类的「存量 + 容量」之后追加净流量 ----
+	public static final int DATA_POWER_CHANGE = PowerAcceptorBlockEntity.DATA_COUNT;
+	public static final int DATA_COUNT = DATA_POWER_CHANGE + ContainerDataCodec.SLOTS_PER_LONG;
 
 	@Override
 	public int getCount() {
@@ -49,11 +49,10 @@ public class BatteryBlockEntity extends PowerAcceptorBlockEntity implements Menu
 
 	@Override
 	public int get(int index) {
-		return switch (index) {
-			case DATA_POWER_CHANGE_LOW -> (int) (powerChange & 0xFFFFFFFFL);
-			case DATA_POWER_CHANGE_HIGH -> (int) (powerChange >> 32);
-			default -> super.get(index);
-		};
+		if (ContainerDataCodec.covers(index, DATA_POWER_CHANGE)) {
+			return ContainerDataCodec.write(powerChange, ContainerDataCodec.chunkOf(index, DATA_POWER_CHANGE));
+		}
+		return super.get(index);
 	}
 
 	public BatteryBlockEntity(BlockPos pos, BlockState state) {

@@ -56,22 +56,22 @@ public class PowerControllerMenu extends MachineMenu {
 	}
 
 	public long getGeneratorOutput() {
-		return readLong(PowerControllerBlockEntity.DATA_GENERATOR_OUTPUT_LOW);
+		return readLong(PowerControllerBlockEntity.DATA_GENERATOR_OUTPUT);
 	}
 
 	public long getConsumerInput() {
-		return readLong(PowerControllerBlockEntity.DATA_CONSUMER_INPUT_LOW);
+		return readLong(PowerControllerBlockEntity.DATA_CONSUMER_INPUT);
 	}
 
 	public long getBatteryStored() {
-		return readLong(PowerControllerBlockEntity.DATA_BATTERY_STORED_LOW);
+		return readLong(PowerControllerBlockEntity.DATA_BATTERY_STORED);
 	}
 
 	public long getBatteryCapacity() {
-		return readLong(PowerControllerBlockEntity.DATA_BATTERY_CAPACITY_LOW);
+		return readLong(PowerControllerBlockEntity.DATA_BATTERY_CAPACITY);
 	}
 
 	public long getNetworkStored() {
-		return readLong(PowerControllerBlockEntity.DATA_NETWORK_STORED_LOW);
+		return readLong(PowerControllerBlockEntity.DATA_NETWORK_STORED);
 	}
 }

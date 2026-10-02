@@ -21,7 +21,8 @@ import net.minecraft.world.phys.BlockHitResult;
 /**
  * 电力岩浆机。
  *
- * <p>右键交互：拿岩浆桶倒进去、拿空桶舀出来、空手查看当前岩浆量。
+ * <p>右键交互：拿岩浆桶倒进去、拿空桶舀出来；空手右键打开界面
+ * （见 {@link BlockMachineBase#useWithoutItem}，岩浆量在面板里显示）。
  */
 public class LavaGeneratorBlock extends BlockMachineBase {
 
@@ -67,19 +68,6 @@ public class LavaGeneratorBlock extends BlockMachineBase {
 		}
 		level.playSound(null, pos, lavaBucket ? SoundEvents.BUCKET_EMPTY_LAVA : SoundEvents.BUCKET_FILL_LAVA,
 				SoundSource.BLOCKS, 1.0F, 1.0F);
-		return InteractionResult.SUCCESS_SERVER;
-	}
-
-	@Override
-	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
-			BlockHitResult hit) {
-		if (level.isClientSide()) {
-			return InteractionResult.SUCCESS;
-		}
-		if (level.getBlockEntity(pos) instanceof LavaGeneratorBlockEntity machine) {
-			player.sendSystemMessage(Component.translatable("block.crimsoncoppergrid.lava_generator.status",
-					machine.getLavaMb(), machine.getTankCapacityMb()).withStyle(ChatFormatting.GOLD));
-		}
 		return InteractionResult.SUCCESS_SERVER;
 	}
 }

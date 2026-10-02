@@ -3,6 +3,7 @@ package com.cyx.crimsoncoppergrid.common.powerSystem;
 import org.jspecify.annotations.Nullable;
 
 import com.cyx.crimsoncoppergrid.common.blockentity.MachineBaseBlockEntity;
+import com.cyx.crimsoncoppergrid.common.menu.ContainerDataCodec;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -45,15 +46,17 @@ import team.reborn.energy.api.base.SimpleSidedEnergyContainer;
 public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity implements ContainerData {
 
 	// ------------------------------------------------------------ 界面数据同步
-	// ContainerData 只有 int 槽位，而电量是 long，所以每个值拆成「低 32 位 + 高 32 位」两格。
 	// 服务端这一份直接读真实字段，客户端那一份由 SimpleContainerData 承接同步值。
+	//
+	// 电量是 long，而 ContainerData 每个槽位在网络上只有 16 位有效，
+	// 所以一个值占 SLOTS_PER_LONG（= 4）格。编解码见 ContainerDataCodec。
 
-	public static final int DATA_STORED_LOW = 0;
-	public static final int DATA_STORED_HIGH = 1;
-	public static final int DATA_CAPACITY_LOW = 2;
-	public static final int DATA_CAPACITY_HIGH = 3;
+	/** 存量：占 {@code DATA_STORED} ~ {@code DATA_STORED + 3} 四格。 */
+	public static final int DATA_STORED = 0;
+	/** 容量：紧跟存量之后，同样四格。 */
+	public static final int DATA_CAPACITY = DATA_STORED + ContainerDataCodec.SLOTS_PER_LONG;
 	/** 最长的那一份（含子类追加的字段）。子类覆写时要一并覆写 {@link #getCount()}。 */
-	public static final int DATA_COUNT = 4;
+	public static final int DATA_COUNT = DATA_CAPACITY + ContainerDataCodec.SLOTS_PER_LONG;
 
 	@Override
 	public int getCount() {
@@ -62,13 +65,13 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 
 	@Override
 	public int get(int index) {
-		return switch (index) {
-			case DATA_STORED_LOW -> (int) (getStored() & 0xFFFFFFFFL);
-			case DATA_STORED_HIGH -> (int) (getStored() >>> 32);
-			case DATA_CAPACITY_LOW -> (int) (getMaxStoredPower() & 0xFFFFFFFFL);
-			case DATA_CAPACITY_HIGH -> (int) (getMaxStoredPower() >>> 32);
-			default -> 0;
-		};
+		if (ContainerDataCodec.covers(index, DATA_STORED)) {
+			return ContainerDataCodec.write(getStored(), ContainerDataCodec.chunkOf(index, DATA_STORED));
+		}
+		if (ContainerDataCodec.covers(index, DATA_CAPACITY)) {
+			return ContainerDataCodec.write(getMaxStoredPower(), ContainerDataCodec.chunkOf(index, DATA_CAPACITY));
+		}
+		return 0;
 	}
 
 	/**

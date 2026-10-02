@@ -25,6 +25,21 @@ public final class ModMenuTypes {
 	public static final MenuType<ElectricFurnaceMenu> ELECTRIC_FURNACE =
 			register("electric_furnace", ElectricFurnaceMenu::new);
 
+	public static final MenuType<FuelGeneratorMenu> FUEL_GENERATOR =
+			register("fuel_generator", FuelGeneratorMenu::new);
+
+	public static final MenuType<CoalSynthesizerMenu> COAL_SYNTHESIZER =
+			register("coal_synthesizer", CoalSynthesizerMenu::new);
+
+	public static final MenuType<SolarGeneratorMenu> SOLAR_GENERATOR =
+			register("solar_generator", SolarGeneratorMenu::new);
+
+	public static final MenuType<WindGeneratorMenu> WIND_GENERATOR =
+			register("wind_generator", WindGeneratorMenu::new);
+
+	public static final MenuType<LavaGeneratorMenu> LAVA_GENERATOR =
+			register("lava_generator", LavaGeneratorMenu::new);
+
 	public static final MenuType<PowerControllerMenu> POWER_CONTROLLER =
 			register("power_controller", PowerControllerMenu::new);
 

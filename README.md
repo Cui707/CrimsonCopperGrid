@@ -22,13 +22,13 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
 > 已在本机实测通过：**JDK 27 + Gradle 9.8.0 + Loom 1.18.2** 下执行 `gradlew build`，
 > 并用 `gradlew runClient` / `runServer` 实机验证（模组加载、能量能力注册、导线传电、
 > 方块与物品渲染均正常，详见下方运行期踩坑记录）。
-> 产物 `build/libs/crimsoncoppergrid-0.0.6.jar`，字节码 major 69（Java 25）。
+> 产物 `build/libs/crimsoncoppergrid-0.0.7.jar`，字节码 major 69（Java 25）。
 
 > **映射说明**：Yarn 目前**没有** 26.3 的映射（`meta.fabricmc.net/v2/versions/yarn/26.3` 返回空数组），
 > 所以 `build.gradle` 里**不写 `mappings` 行**，由 Loom 1.18 默认采用 Mojang 官方映射。
 > 这意味着模组代码使用官方类名，例如 `net.minecraft.resources.Identifier`（旧的 Yarn 名 `ResourceLocation` 不再适用）。
 
-## 已实现的内容（0.0.6）
+## 已实现的内容（0.0.7）
 
 | 分类 | 方块/物品 | 数值与行为 |
 | --- | --- | --- |
@@ -54,6 +54,49 @@ EXTREME 2 048 / INSANE 8 192 / INFINITE）。
   转成可携带燃料，不是永动机。嫌宽松就调 `CoalSynthesizerBlockEntity.FE_PER_COAL`。
 - 电→岩浆是全模组最贵的一环（一桶 ≈ 12 块煤的电），因为它是**可再生岩浆**，
   太便宜会直接破坏生存平衡。
+
+## 界面层
+
+八台设备各有自己的界面，**全部空手右键方块打开**（有物品在手上时仍走各自的快捷交互，
+例如煤炭合成机取煤、岩浆机倒桶）：
+
+| 界面 | 布局 |
+| --- | --- |
+| 铜制电池 | 电量条 + 「正在充电 / 放电 / 待机」净流量 |
+| 电力熔炉 | 输入槽 + 输出槽 + 电量条 + 烧炼进度条 |
+| 燃料发电机 | 居中燃料槽 + 燃烧进度条 + 电量条 |
+| 电力煤炭合成机 | 产物槽 + 电量条（**缓冲容量即一块煤的电量，所以这条同时也是进度条**） |
+| 太阳能 / 风力发电机 | 电量条 + 额定输出与发电条件说明（客户端拿不到实时输出，见下） |
+| 电力岩浆机 | 电量条 + 岩浆存量条 + 消耗率 |
+| 电力控制器 | 电网总览：发电输出 / 用电输入 / 电池存量 / 导线与设备计数 |
+
+**整个界面层不新增任何美术资源**：背景直接复用原版 `container/furnace.png`，
+机器区用一块原版底色的面板盖掉后按各机器自己的布局重画；槽位凹槽原本画在那张贴图里，
+被盖掉后需要按 `slot.x/slot.y` 用原版 `container/slot` sprite 补回来。
+
+> 三台发电机界面只显示**额定输出**而不是实时输出 —— 客户端方块实体里 `currentOutput()`
+> 恒为 0（真实值只在服务端算），而用同步包补一份实时值并不值当。额定值直接用方块实体的
+> `public static final` 常量，零同步成本。
+
+### 界面数据同步：`ContainerData` 每格只有 16 位
+
+这是本项目踩得最深的一个坑，单列出来：
+
+原版 `ClientboundContainerSetDataPacket` 的写入实现是
+
+```java
+buffer.writeContainerId(this.containerId);
+buffer.writeShort(this.id);     // 下标：16 位
+buffer.writeShort(this.value);  // 数值：16 位
+```
+
+也就是说 **`ContainerData` 的每个槽位在网络上只有 16 位有效，超出部分被静默丢弃**，
+编译不报错、运行不抛异常。电量动辄上百万，若按「低 32 位 + 高 32 位」拆两格发送，
+`1 000 000`（`0x000F4240`）到客户端只剩 `0x4240 = 16960`，于是 `stored > capacity`，
+电量条整体填满、百分比显示 133%。
+
+正确做法是按 **16 位一组拆成四格**，收发两侧都走 `common/menu/ContainerDataCodec`，
+它同时负责拼回时的符号还原（`readShort` 会把 bit15 当符号位扩展，所以要先 `& 0xFFFF`）。
 
 ## 电力系统设计
 
@@ -154,13 +197,30 @@ $env:JAVA_HOME = 'D:\jdk27'
 ## 本机网络（代理）说明
 
 这台机器**直连会失败**：`services.gradle.org` 与 Maven 仓库的直连会在 TLS 握手阶段超时，
-必须走本地代理 `127.0.0.1:7890`。代理已经写进配置：
+必须走本地代理 `127.0.0.1:7890`。
 
-- `gradle/wrapper/gradle-wrapper.properties`：`systemProp.https.proxyHost/Port`（供 wrapper 下载 Gradle 发行包）
-- `gradle.properties`：`systemProp.http/https.proxyHost/Port`（供 Gradle 解析依赖）
-- wrapper 的 `networkTimeout` 已从 10 秒提高到 300 秒，`retries` 设为 2
+**代理配置一律放在仓库之外**，即用户级文件 `~/.gradle/gradle.properties`：
 
-如果你的网络可以直连，把上述 4～6 行代理配置删掉即可。
+```properties
+systemProp.https.proxyHost=127.0.0.1
+systemProp.https.proxyPort=7890
+systemProp.http.proxyHost=127.0.0.1
+systemProp.http.proxyPort=7890
+```
+
+> **不要把代理写进仓库里的 `gradle.properties` 或 `gradle/wrapper/gradle-wrapper.properties`。**
+> 这两个文件会被提交，而 GitHub Actions 的构建机上并没有 `127.0.0.1:7890` 这个代理，
+> 结果是每次 push 都失败在 `Connection refused`。
+> 本项目 2026-10-02 之前的 **7 次 CI 全部失败**都是这个原因（见版本历史 0.0.7）。
+
+如果哪天 `~/.gradle/wrapper/dists` 里的 Gradle 发行包被清掉、需要重新下载，
+而 wrapper 读不到用户级代理配置，用环境变量临时指定即可：
+
+```powershell
+$env:JAVA_TOOL_OPTIONS = '-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=7890'
+```
+
+wrapper 的 `networkTimeout` 已从 10 秒提高到 300 秒，`retries` 设为 2。
 
 ## 开发注意事项
 
@@ -206,6 +266,7 @@ $env:JAVA_HOME = 'D:\jdk27'
 
 | 版本 | 内容 |
 | --- | --- |
+| 0.0.7 | **八台设备的界面层**：电池 / 电力熔炉 / 电力控制器 / 燃料发电机 / 电力煤炭合成机 / 太阳能 / 风力 / 电力岩浆机，全部空手右键打开；背景复用原版容器贴图，界面层零新增美术资源。**修掉界面电量读数全部错乱的根因** —— `ClientboundContainerSetDataPacket` 的 `value` 是 `writeShort`，`ContainerData` 每格只有 16 位，原来的「低 32 位 + 高 32 位」拆法被静默截断（`1 000 000` 变成 `16960`，电量条填满、显示 133%）；改为按 16 位拆四格并抽成 `ContainerDataCodec`。**修复 CI**：把本机代理从仓库配置里移出（此前 7 次构建全部因 `Connection refused` 失败）。 |
 | 0.0.6 | **能量核心换成 Team Reborn Energy，删掉自研 Grid**。分层与命名对齐 TechReborn / RebornCore；能量模型改为官方「推流」。导线重写为共享缓冲池（按维度隔离），连通性判定不再依赖 `instanceof`，修掉"相邻电线不连"。十台设备全部迁移到新的能量基类。补齐 9 个方块掉落表与 10 个 item model definition（修掉物品图标全紫黑）、补模组图标。 |
 | 0.0.5 | 修正电线放置位置与邻居通知；相邻电线连接问题仍未解决。 |
 | 0.0.4 | 修复启动即崩的配方与点电线抛异常的问题，完成首次实机验证。 |

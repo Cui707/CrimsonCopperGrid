@@ -2,11 +2,17 @@ package com.cyx.crimsoncoppergrid.blockentity;
 
 import org.jspecify.annotations.Nullable;
 
+import com.cyx.crimsoncoppergrid.common.menu.LavaGeneratorMenu;
 import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,7 +28,24 @@ import net.minecraft.world.level.storage.ValueOutput;
  *
  * <p>罐子只做整数（mB）存储，没有实现完整的流体 API；桶的进出在方块层处理。
  */
-public class LavaGeneratorBlockEntity extends PowerAcceptorBlockEntity {
+public class LavaGeneratorBlockEntity extends PowerAcceptorBlockEntity implements MenuProvider {
+
+	// ---- 界面数据：在父类的「电量 + 容量」四格之后追加罐内岩浆量 ----
+	public static final int DATA_TANK = PowerAcceptorBlockEntity.DATA_COUNT;
+	public static final int DATA_COUNT = PowerAcceptorBlockEntity.DATA_COUNT + 1;
+
+	@Override
+	public int getCount() {
+		return DATA_COUNT;
+	}
+
+	@Override
+	public int get(int index) {
+		return switch (index) {
+			case DATA_TANK -> lavaMb;
+			default -> super.get(index);
+		};
+	}
 
 	/** 每 1 mB 岩浆消耗的电量。 */
 	public static final long FE_PER_MB = 30L;
@@ -126,6 +149,19 @@ public class LavaGeneratorBlockEntity extends PowerAcceptorBlockEntity {
 		setChanged();
 		syncWithAll();
 		return new ItemStack(Items.BUCKET);
+	}
+
+	// ------------------------------------------------------------ 界面
+
+	@Override
+	public Component getDisplayName() {
+		return Component.translatable("block.crimsoncoppergrid.lava_generator");
+	}
+
+	@Nullable
+	@Override
+	public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+		return new LavaGeneratorMenu(containerId, playerInventory, this);
 	}
 
 	// ------------------------------------------------------------ 同步与存档

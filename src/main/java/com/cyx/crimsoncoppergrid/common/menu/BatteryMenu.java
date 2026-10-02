@@ -42,15 +42,15 @@ public class BatteryMenu extends MachineMenu {
 	// ------------------------------------------------------------ 界面读取
 
 	public long getStored() {
-		return readLong(PowerAcceptorBlockEntity.DATA_STORED_LOW);
+		return readLong(PowerAcceptorBlockEntity.DATA_STORED);
 	}
 
 	public long getCapacity() {
-		return readLong(PowerAcceptorBlockEntity.DATA_CAPACITY_LOW);
+		return readLong(PowerAcceptorBlockEntity.DATA_CAPACITY);
 	}
 
 	/** 上一个 tick 的净流量：正数在充电，负数在放电。 */
 	public long getPowerChange() {
-		return readLong(BatteryBlockEntity.DATA_POWER_CHANGE_LOW);
+		return readLong(BatteryBlockEntity.DATA_POWER_CHANGE);
 	}
 }
