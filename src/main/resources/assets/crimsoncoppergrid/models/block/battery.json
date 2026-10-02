@@ -2,23 +2,72 @@
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "minecraft:block/copper_block",
-    "top": "minecraft:block/copper_block",
-    "front": "minecraft:block/redstone_block",
-    "side": "minecraft:block/copper_block",
-    "bottom": "minecraft:block/copper_block",
-    "back": "minecraft:block/copper_block"
+    "shell": "minecraft:block/copper_block",
+    "cap": "minecraft:block/cut_copper",
+    "terminal": "crimsoncoppergrid:block/battery_terminal",
+    "band": "crimsoncoppergrid:block/battery_band_off"
   },
   "elements": [
     {
-      "from": [0, 0, 0],
-      "to": [16, 16, 16],
+      "name": "base",
+      "from": [2, 0, 2],
+      "to": [14, 1, 14],
       "faces": {
-        "down": {"texture": "#bottom"},
-        "up": {"texture": "#top"},
-        "north": {"texture": "#front"},
-        "south": {"texture": "#back"},
-        "west": {"texture": "#side"},
-        "east": {"texture": "#side"}
+        "down": {"texture": "#cap"},
+        "up": {"texture": "#cap"},
+        "north": {"texture": "#cap"},
+        "south": {"texture": "#cap"},
+        "west": {"texture": "#cap"},
+        "east": {"texture": "#cap"}
+      }
+    },
+    {
+      "name": "can",
+      "from": [2, 1, 2],
+      "to": [14, 13, 14],
+      "faces": {
+        "down": {"texture": "#shell"},
+        "up": {"texture": "#shell"},
+        "north": {"texture": "#shell"},
+        "south": {"texture": "#shell"},
+        "west": {"texture": "#shell"},
+        "east": {"texture": "#shell"}
+      }
+    },
+    {
+      "name": "band",
+      "from": [1.9, 9, 1.9],
+      "to": [14.1, 11, 14.1],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 3], "texture": "#band"},
+        "south": {"uv": [0, 0, 16, 3], "texture": "#band"},
+        "west": {"uv": [0, 0, 16, 3], "texture": "#band"},
+        "east": {"uv": [0, 0, 16, 3], "texture": "#band"}
+      }
+    },
+    {
+      "name": "cap",
+      "from": [2, 13, 2],
+      "to": [14, 14.5, 14],
+      "faces": {
+        "down": {"texture": "#cap"},
+        "up": {"texture": "#cap"},
+        "north": {"texture": "#cap"},
+        "south": {"texture": "#cap"},
+        "west": {"texture": "#cap"},
+        "east": {"texture": "#cap"}
+      }
+    },
+    {
+      "name": "terminal",
+      "from": [6, 14.5, 6],
+      "to": [10, 16, 10],
+      "faces": {
+        "up": {"uv": [6, 6, 10, 10], "texture": "#terminal"},
+        "north": {"uv": [6, 0, 10, 1.5], "texture": "#terminal"},
+        "south": {"uv": [6, 0, 10, 1.5], "texture": "#terminal"},
+        "west": {"uv": [6, 0, 10, 1.5], "texture": "#terminal"},
+        "east": {"uv": [6, 0, 10, 1.5], "texture": "#terminal"}
       }
     }
   ]

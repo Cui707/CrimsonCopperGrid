@@ -1,0 +1,6 @@
+{
+  "parent": "crimsoncoppergrid:block/battery",
+  "textures": {
+    "band": "crimsoncoppergrid:block/battery_band_on"
+  }
+}

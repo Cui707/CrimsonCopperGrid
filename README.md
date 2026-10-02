@@ -22,22 +22,22 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
 > 已在本机实测通过：**JDK 27 + Gradle 9.8.0 + Loom 1.18.2** 下执行 `gradlew build`，
 > 并用 `gradlew runClient` / `runServer` 实机验证（模组加载、能量能力注册、导线传电、
 > 方块与物品渲染均正常，详见下方运行期踩坑记录）。
-> 产物 `build/libs/crimsoncoppergrid-0.0.7.jar`，字节码 major 69（Java 25）。
+> 产物 `build/libs/crimsoncoppergrid-0.0.8.jar`，字节码 major 69（Java 25）。
 
 > **映射说明**：Yarn 目前**没有** 26.3 的映射（`meta.fabricmc.net/v2/versions/yarn/26.3` 返回空数组），
 > 所以 `build.gradle` 里**不写 `mappings` 行**，由 Loom 1.18 默认采用 Mojang 官方映射。
 > 这意味着模组代码使用官方类名，例如 `net.minecraft.resources.Identifier`（旧的 Yarn 名 `ResourceLocation` 不再适用）。
 
-## 已实现的内容（0.0.7）
+## 已实现的内容（0.0.8）
 
 | 分类 | 方块/物品 | 数值与行为 |
 | --- | --- | --- |
 | 输电 | 铜制电线 | 六向自动连接（连接状态写进 blockstate），纯导体；自身带 128 FE 小缓冲，物理相连的导线合成一个共享池 |
-| 输电 | 铜制电闸 | 右键或红石控制通断；**断开时在组网层面直接断路**，两侧成为彼此独立的电网 |
+| 输电 | 铜制电闸 | 右键或红石控制通断；**断开时在组网层面直接断路**，两侧成为彼此独立的电网。外观是**在线开关**（面板 + 可扳动的拉杆手柄，见「方块外观」） |
 | 发电 | 燃料发电机 | 1 燃料刻 = 40 FE。一块煤 = 1600 刻 = **64 000 FE**；缓冲 4 000 FE |
 | 发电 | 太阳能发电机 | 20 FE/t，仅白天 + 晴天 + 正上方天空光满值；缓冲 1 000 FE |
 | 发电 | 风力发电机 | 10→30 FE/t，随 Y 高度线性增长（200 格封顶）；正上方需留空作为迎风面 |
-| 储能 | 铜制电池 | 1 000 000 FE 容量，单 tick 收/发各 1 000 FE |
+| 储能 | 铜制电池 | 1 000 000 FE 容量，单 tick 收/发各 1 000 FE。外观是**立式电芯**（红石环带通电发亮，见「方块外观」） |
 | 用电 | 电力熔炉 | 10 FE/烧炼刻 × 200 刻 = **2 000 FE/物品**；缓冲正好 2 000 FE（存量即进度） |
 | 用电 | 电力煤炭合成机 | **8 000 FE = 1 块煤**，内部可攒 64 块，每 20 刻自动送进相邻容器 |
 | 用电 | 电力岩浆机 | 30 FE/mB，25 刻产 1 mB → **1 桶 ≈ 750 000 FE**；内部罐 4 000 mB |
@@ -97,6 +97,48 @@ buffer.writeShort(this.value);  // 数值：16 位
 
 正确做法是按 **16 位一组拆成四格**，收发两侧都走 `common/menu/ContainerDataCodec`，
 它同时负责拼回时的符号还原（`readShort` 会把 bit15 当符号位扩展，所以要先 `& 0xFFFF`）。
+
+## 方块外观
+
+外观按「一眼能认出是什么」来设计，全部用原版贴图 + 少量自制小图，不引入任何建模依赖。
+
+### 铜制电闸：在线开关，不是一块铜
+
+原来它整块渲染成 16³ 铜方块，和电池、和普通铜块都分不清。现在改成现实里装在电线上的
+那种**在线开关**：
+
+- **导线中枢**（与 `cable_core` 一致）+ **方形安装面板** + **可 ±45° 扳动的拉杆手柄**
+- 通断两态靠**手柄倾倒方向**区分：断开往一侧倒，导通往另一侧倒 ——
+  `switch_on.json` 用的 `-45°` 正是原版 `lever.json`（`powered=true`）的角度，
+  所以读法和原版拉杆完全一致
+- `SwitchBlock` 新增 `FACING`（水平朝向），手柄总是朝向放置者，和原版拉杆一样
+- 自制 `switch_lever.png` 画铜色手柄，取样区沿用原版 `lever.png` 的 `x=7..9, y=6..16`
+- blockstate 用 **multipart**：8 条 `powered × facing`（手柄）＋ 6 条导线臂 ——
+  电闸因此能和导线**在视觉上连成一体**
+
+> 26.3 里没有 `DirectionProperty`，水平朝向要用 `BlockStateProperties.HORIZONTAL_FACING`
+> （类型是 `EnumProperty<Direction>`）。
+
+> 顺带修了一个既有缺陷：电闸的选取/碰撞盒原来只有 2×2×2 的核心（`half = thickness×16`），
+> 是「看得见、点不着」的。既然外观变大，形状也一并放大到面板 + 拉杆的包络，
+> 否则玩家点不到那根拉杆。
+
+### 铜制电池：立式电芯
+
+原来也是 16³ 铜块（正面贴红石块）。现在是**立式电芯**：
+
+- 底座 + 铜壳（12 宽柱体，四周留空不再顶着方块边）+ `cut_copper` 顶盖 +
+  顶部**黄铜正极凸台** —— 凸台是「这是电池」最关键的信号
+- 一圈**红石环带**箍在电芯上部，四面都能看见，凸出 0.1 格避免与上下壳体 z-fighting
+- **环带会亮**：`FACING` + `ACTIVE` 两个状态终于被用上（此前 blockstate 是空 key 通配，
+  等于白白浪费）。`BatteryBlockEntity.serverTick()` 里已有的 `setActive(powerChange != 0)`
+  直接驱动 —— **通电时环带亮红石红，闲置时暗红**
+- 新增 `battery_terminal` / `battery_band_off` / `battery_band_on` 三张小贴图
+- **物品栏图标指向会亮的那一个变体**（`battery_active`）：闲置的暗环带在深色 GUI 里
+  几乎看不见，红环带才醒目
+
+> 碰撞/选取形状**故意保持满块**：电池是机器不是装饰，满块支持顶面放火把/红石，
+> 也和其余九台机器保持一致。
 
 ## 电力系统设计
 
@@ -234,6 +276,10 @@ wrapper 的 `networkTimeout` 已从 10 秒提高到 300 秒，`retries` 设为 2
   **服务端启动不会报任何错**，容易漏。
 - 连通性与能量能力的判定**不要依赖自己类的 `instanceof`**，用 `BlockEntityType` 比较
   或 `EnergyStorage.SIDED` 查阅表，这样不会受类加载器/陈旧编译产物的影响。
+- **模型画到多远，和玩家能点到多远，是两件独立的事**。`VoxelShape` 决定选取与碰撞，
+  模型只决定外观。只改模型不改形状，就会出现「看得见、点不着」——电闸曾长期如此
+  （形状仍是最初按导线粗细算的 2×2×2 核心）。换外观时务必一并核对 `getShape` /
+  `getCollisionShape`。
 
 ### 运行期踩过的坑（都是实机跑 `runClient` 才暴露的）
 
@@ -260,12 +306,14 @@ wrapper 的 `networkTimeout` 已从 10 秒提高到 300 秒，`retries` 设为 2
 | `Level#canSeeSky` 不存在 | 用 `getBrightness(LightLayer.SKY, pos)` 判断是否露天 |
 | `LevelReader#hasChunkAt` 已过时 | 改用 `isLoaded`（项目里已打开 `-Xlint:deprecation`） |
 | 交互分发 | 主手有物品走 `useItemOn`，空手走 `useWithoutItem`，两者互斥 |
+| `DirectionProperty` 已删除 | 水平朝向直接用 `BlockStateProperties.HORIZONTAL_FACING`（类型是 `EnumProperty<Direction>`） |
 | loot table 字段名 | item entry 用 `"name"`，而配方 `result` 用 `"id"`，两套不通用；目录是单数 `loot_table/` |
 
 ## 版本历史
 
 | 版本 | 内容 |
 | --- | --- |
+| 0.0.8 | **电闸与电池的外观重做**（此前的两轮实机迭代）。**电闸**从 16³ 实心铜块改成「导线中枢 + 方形面板 + 可扳动的拉杆手柄」，通断两态靠手柄倾倒方向区分（角度照抄原版 `lever.json`）；新增 `FACING` 让手柄朝向放置者；blockstate 改 multipart，8 条 `powered × facing` + 6 条导线臂，电闸在视觉上与导线连成一体；顺带修掉「选取盒只有 2×2×2、看得见点不着」的既有缺陷。**电池**从 16³ 铜块改成**立式电芯**（底座 + 12 宽铜壳 + 顶盖 + 黄铜正极凸台 + 红石环带），并把一直被空 key blockstate 浪费掉的 `FACING`+`ACTIVE` 用上 —— 通电时环带亮红石红、闲置暗红；物品图标指向发亮变体。新增 4 张自制小贴图，其余复用原版铜系贴图，界面层与外观均零新增美术依赖。 |
 | 0.0.7 | **八台设备的界面层**：电池 / 电力熔炉 / 电力控制器 / 燃料发电机 / 电力煤炭合成机 / 太阳能 / 风力 / 电力岩浆机，全部空手右键打开；背景复用原版容器贴图，界面层零新增美术资源。**修掉界面电量读数全部错乱的根因** —— `ClientboundContainerSetDataPacket` 的 `value` 是 `writeShort`，`ContainerData` 每格只有 16 位，原来的「低 32 位 + 高 32 位」拆法被静默截断（`1 000 000` 变成 `16960`，电量条填满、显示 133%）；改为按 16 位拆四格并抽成 `ContainerDataCodec`。**修复 CI**：把本机代理从仓库配置里移出（此前 7 次构建全部因 `Connection refused` 失败）。 |
 | 0.0.6 | **能量核心换成 Team Reborn Energy，删掉自研 Grid**。分层与命名对齐 TechReborn / RebornCore；能量模型改为官方「推流」。导线重写为共享缓冲池（按维度隔离），连通性判定不再依赖 `instanceof`，修掉"相邻电线不连"。十台设备全部迁移到新的能量基类。补齐 9 个方块掉落表与 10 个 item model definition（修掉物品图标全紫黑）、补模组图标。 |
 | 0.0.5 | 修正电线放置位置与邻居通知；相邻电线连接问题仍未解决。 |

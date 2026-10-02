@@ -1,7 +1,34 @@
 {
   "variants": {
-    "": {
+    "facing=north,active=false": {
       "model": "crimsoncoppergrid:block/battery"
+    },
+    "facing=north,active=true": {
+      "model": "crimsoncoppergrid:block/battery_active"
+    },
+    "facing=east,active=false": {
+      "model": "crimsoncoppergrid:block/battery",
+      "y": 90
+    },
+    "facing=east,active=true": {
+      "model": "crimsoncoppergrid:block/battery_active",
+      "y": 90
+    },
+    "facing=south,active=false": {
+      "model": "crimsoncoppergrid:block/battery",
+      "y": 180
+    },
+    "facing=south,active=true": {
+      "model": "crimsoncoppergrid:block/battery_active",
+      "y": 180
+    },
+    "facing=west,active=false": {
+      "model": "crimsoncoppergrid:block/battery",
+      "y": 270
+    },
+    "facing=west,active=true": {
+      "model": "crimsoncoppergrid:block/battery_active",
+      "y": 270
     }
   }
 }
