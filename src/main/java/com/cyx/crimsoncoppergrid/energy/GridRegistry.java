@@ -10,13 +10,14 @@ import java.util.Map;
 import java.util.Set;
 
 import com.cyx.crimsoncoppergrid.CrimsonCopperGrid;
-import com.cyx.crimsoncoppergrid.block.CableBlock;
-import com.cyx.crimsoncoppergrid.block.SwitchBlock;
-
+import com.cyx.crimsoncoppergrid.blocks.cable.AbstractConnectionBlock;
+import com.cyx.crimsoncoppergrid.blocks.cable.CableBlockEntity;
+import com.cyx.crimsoncoppergrid.init.ModBlocks;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -94,22 +95,22 @@ public final class GridRegistry {
 	 * 这样悬空的电线不会长出多余的触手，「连接状态」的显示才有意义。
 	 */
 	public boolean shouldConnect(BlockPos cablePos, Direction side) {
-		BlockPos neighbor = cablePos.relative(side);
-		if (!level.isLoaded(neighbor)) {
-			return false;
-		}
-		BlockState state = level.getBlockState(neighbor);
-		// 邻居是电线或导通的电闸 -> 连
-		if (isConductor(state)) {
-			return true;
-		}
-		// 邻居是带能量能力的设备 -> 连
-		return level.getBlockEntity(neighbor) instanceof EnergyStorage;
+		return EnergyLookup.shouldConnect(level, cablePos, side);
 	}
 
-	/** 该方块状态是否能导电（电线，或处于开启状态的电闸）。 */
+	/** 该方块状态是否能导电（我们的电线，或处于开启状态的我们的电闸）。 */
 	public static boolean isConductor(BlockState state) {
-		return state.getBlock() instanceof CableBlock || SwitchBlock.isConductor(state);
+		return isOurCable(state) || isOurSwitch(state);
+	}
+
+	/** 判断方块是不是我们的电线（走统一的 EnergyLookup 判定）。 */
+	public static boolean isOurCable(BlockState state) {
+		return EnergyLookup.isCableBlock(state);
+	}
+
+	/** 判断方块是不是我们的电闸。 */
+	public static boolean isOurSwitch(BlockState state) {
+		return EnergyLookup.isSwitchBlock(state);
 	}
 
 	// ---------------------------------------------------------------- tick
@@ -254,25 +255,18 @@ public final class GridRegistry {
 		return grids;
 	}
 
-	/** 让电线在邻居变化后重算自己的连接形态。 */
+	/**
+	 * 让电线重算自己的连接形态。
+	 *
+	 * <p>重构后这件事由 {@link CableBlockEntity} 负责（对齐 TechReborn），
+	 * 这里只做转发，避免出现两套写形状的代码。
+	 */
 	public void refreshCable(BlockPos pos) {
 		if (!level.isLoaded(pos)) {
 			return;
 		}
-		BlockState state = level.getBlockState(pos);
-		if (!(state.getBlock() instanceof CableBlock)) {
-			return;
-		}
-		BlockState updated = state;
-		for (Direction side : Direction.values()) {
-			BooleanProperty property = CableBlock.propertyFor(side);
-			if (!updated.hasProperty(property)) {
-				continue;
-			}
-			updated = updated.setValue(property, shouldConnect(pos, side));
-		}
-		if (updated != state) {
-			level.setBlock(pos, updated, CableBlock.UPDATE_FLAGS);
+		if (level.getBlockEntity(pos) instanceof CableBlockEntity cable) {
+			cable.recomputeShape();
 		}
 	}
 

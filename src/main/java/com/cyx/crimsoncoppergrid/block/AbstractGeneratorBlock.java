@@ -3,7 +3,7 @@ package com.cyx.crimsoncoppergrid.block;
 import com.cyx.crimsoncoppergrid.block.entity.FuelGeneratorBlockEntity;
 import com.cyx.crimsoncoppergrid.block.entity.SolarGeneratorBlockEntity;
 import com.cyx.crimsoncoppergrid.block.entity.WindGeneratorBlockEntity;
-import com.cyx.crimsoncoppergrid.registry.ModBlockEntities;
+import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

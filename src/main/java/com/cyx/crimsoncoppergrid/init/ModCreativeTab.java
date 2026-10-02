@@ -1,4 +1,4 @@
-package com.cyx.crimsoncoppergrid.registry;
+package com.cyx.crimsoncoppergrid.init;
 
 import com.cyx.crimsoncoppergrid.CrimsonCopperGrid;
 
@@ -8,14 +8,12 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.CreativeModeTab.Row;
+import net.minecraft.world.item.ItemStack;
 
 /**
- * 创造模式物品栏。
- *
- * <p>直接使用原版 {@link CreativeModeTab} 的构建器，不依赖 Fabric 的物品栏扩展事件 ——
- * 这样物品栏的注册时机与普通注册项完全一致，少一层时序不确定性。
+ * 创造模式物品栏（直接用原版构建器，不依赖 Fabric 的物品栏扩展事件，
+ * 注册时机与普通注册项完全一致）。
  */
 public final class ModCreativeTab {
 	public static final ResourceKey<CreativeModeTab> KEY = ResourceKey.create(

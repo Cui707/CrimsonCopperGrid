@@ -1,9 +1,10 @@
 package com.cyx.crimsoncoppergrid;
 
-import com.cyx.crimsoncoppergrid.registry.ModBlockEntities;
-import com.cyx.crimsoncoppergrid.registry.ModBlocks;
-import com.cyx.crimsoncoppergrid.registry.ModCreativeTab;
-import com.cyx.crimsoncoppergrid.registry.ModItems;
+import com.cyx.crimsoncoppergrid.energy.SelfCheck;
+import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
+import com.cyx.crimsoncoppergrid.init.ModBlocks;
+import com.cyx.crimsoncoppergrid.init.ModCreativeTab;
+import com.cyx.crimsoncoppergrid.init.ModItems;
 
 import net.fabricmc.api.ModInitializer;
 
@@ -31,6 +32,9 @@ public class CrimsonCopperGrid implements ModInitializer {
 		ModBlockEntities.init();
 		ModItems.init();
 		ModCreativeTab.init();
+
+		// 启动自检：用真实世界验证几条容易写错的接线判定，结果直接打进日志
+		SelfCheck.install();
 
 		LOGGER.info("CrimsonCopperGrid 初始化完成：铜与红石的电网已就绪");
 	}

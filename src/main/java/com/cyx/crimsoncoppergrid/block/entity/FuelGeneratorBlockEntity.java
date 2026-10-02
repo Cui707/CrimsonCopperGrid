@@ -1,7 +1,7 @@
 package com.cyx.crimsoncoppergrid.block.entity;
 
 import com.cyx.crimsoncoppergrid.energy.EnergyProducer;
-import com.cyx.crimsoncoppergrid.registry.ModBlockEntities;
+import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;

@@ -2,7 +2,7 @@ package com.cyx.crimsoncoppergrid.item;
 
 import com.cyx.crimsoncoppergrid.energy.Grid;
 import com.cyx.crimsoncoppergrid.energy.GridRegistry;
-import com.cyx.crimsoncoppergrid.registry.ModBlocks;
+import com.cyx.crimsoncoppergrid.init.ModBlocks;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;

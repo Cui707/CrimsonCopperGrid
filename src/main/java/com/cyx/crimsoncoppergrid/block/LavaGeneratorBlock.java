@@ -1,7 +1,7 @@
 package com.cyx.crimsoncoppergrid.block;
 
 import com.cyx.crimsoncoppergrid.block.entity.LavaGeneratorBlockEntity;
-import com.cyx.crimsoncoppergrid.registry.ModBlockEntities;
+import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;

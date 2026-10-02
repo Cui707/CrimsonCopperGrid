@@ -2,7 +2,7 @@ package com.cyx.crimsoncoppergrid.block.entity;
 
 import java.util.Optional;
 
-import com.cyx.crimsoncoppergrid.registry.ModBlockEntities;
+import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;

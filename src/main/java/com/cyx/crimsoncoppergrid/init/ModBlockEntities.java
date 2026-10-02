@@ -1,4 +1,4 @@
-package com.cyx.crimsoncoppergrid.registry;
+package com.cyx.crimsoncoppergrid.init;
 
 import java.util.Set;
 
@@ -10,6 +10,7 @@ import com.cyx.crimsoncoppergrid.block.entity.FuelGeneratorBlockEntity;
 import com.cyx.crimsoncoppergrid.block.entity.LavaGeneratorBlockEntity;
 import com.cyx.crimsoncoppergrid.block.entity.SolarGeneratorBlockEntity;
 import com.cyx.crimsoncoppergrid.block.entity.WindGeneratorBlockEntity;
+import com.cyx.crimsoncoppergrid.blocks.cable.CableBlockEntity;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,10 +23,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 /**
  * 方块实体类型注册。
  *
- * <p>26.3 的 {@code BlockEntityType} 已经没有 Builder 了，构造函数本身就是
- * {@code (BlockEntitySupplier<T>, Set<Block>)}，直接 new 再注册即可。
+ * <p>26.3 已没有 {@code BlockEntityType.Builder}，构造函数本身就是
+ * {@code (BlockEntitySupplier<T>, Set<Block>)}。
  */
 public final class ModBlockEntities {
+	public static final BlockEntityType<CableBlockEntity> CABLE = register(
+			"cable", CableBlockEntity::new, ModBlocks.CABLE);
+
 	public static final BlockEntityType<BatteryBlockEntity> BATTERY = register(
 			"battery", BatteryBlockEntity::new, ModBlocks.BATTERY);
 
