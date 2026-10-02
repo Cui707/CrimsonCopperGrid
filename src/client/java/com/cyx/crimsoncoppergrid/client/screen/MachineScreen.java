@@ -98,6 +98,21 @@ public abstract class MachineScreen<T extends MachineMenu> extends AbstractConta
 	/**
 	 * 画一条水平进度条。坐标相对界面左上角，与原版 {@code extractLabels} 一致。
 	 *
+	 * <h2>两个容易踩的参数语义</h2>
+	 * <ul>
+	 *   <li>{@code fill(x1, y1, x2, y2, color)} —— 传的是<b>两个角</b>，覆盖
+	 *       {@code [x1, x2)} × {@code [y1, y2)}；</li>
+	 *   <li>{@code outline(x, y, width, height, color)} —— 传的是<b>左上角 + 宽高</b>，
+	 *       名字里的 "outline" 只是「描边」，并不代表参数是四边坐标。
+	 *       它内部展开成四条 1px 的 {@code fill}，最右边画到 {@code x + width}，
+	 *       最下边画到 {@code y + height}。</li>
+	 * </ul>
+	 * 两者混用会得到一个「明显跑偏的细线方框」：把 {@code (x1, y1, x2, y2)} 当成宽度和高度传给
+	 * {@code outline}，框会向右下角长出一大截（右下角坐标被当成了尺寸），而这个框恰好只有
+	 * 1px 宽，看上去就像界面被随手描了一笔 —— 本类以前正是这个问题。
+	 * 这里传 {@code width + 2 / height + 2}：外框正好比进度条本体（{@code width × height}）
+	 * 四周各多 1px。
+	 *
 	 * @param ratio 0~1，超出范围会被夹紧
 	 */
 	protected void drawBar(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
@@ -107,7 +122,7 @@ public abstract class MachineScreen<T extends MachineMenu> extends AbstractConta
 		if (filled > 0) {
 			graphics.fill(x, y, x + filled, y + height, fillColor);
 		}
-		graphics.outline(x - 1, y - 1, x + width + 1, y + height + 1, BAR_FRAME_COLOR);
+		graphics.outline(x - 1, y - 1, width + 2, height + 2, BAR_FRAME_COLOR);
 	}
 
 	/** 在界面上居中画一行字（{@code centerX} 是相对界面的中心线）。 */

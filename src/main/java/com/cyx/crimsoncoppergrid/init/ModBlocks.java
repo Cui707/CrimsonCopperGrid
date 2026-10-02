@@ -10,6 +10,7 @@ import com.cyx.crimsoncoppergrid.blocks.ElectricFurnaceBlock;
 import com.cyx.crimsoncoppergrid.blocks.FuelGeneratorBlock;
 import com.cyx.crimsoncoppergrid.blocks.LavaGeneratorBlock;
 import com.cyx.crimsoncoppergrid.blocks.SolarGeneratorBlock;
+import com.cyx.crimsoncoppergrid.blocks.WindGeneratorBaseBlock;
 import com.cyx.crimsoncoppergrid.blocks.WindGeneratorBlock;
 import com.cyx.crimsoncoppergrid.blocks.cable.CableBlock;
 import com.cyx.crimsoncoppergrid.blocks.cable.SwitchBlock;
@@ -46,6 +47,14 @@ public final class ModBlocks {
 			register("solar_generator", SolarGeneratorBlock::new, BlockMachineBase.machineProperties());
 	public static final WindGeneratorBlock WIND_GENERATOR =
 			register("wind_generator", WindGeneratorBlock::new, BlockMachineBase.machineProperties());
+	/**
+	 * 风机底座。
+	 *
+	 * <p>没有方块实体（它只是个标记），但它<b>必须</b>排在 {@link #WIND_GENERATOR} 之后：
+	 * 发电机每次扫塔都要读这个字段，放在前面会读到尚未赋值的 {@code null}。
+	 */
+	public static final WindGeneratorBaseBlock WIND_GENERATOR_BASE =
+			register("wind_generator_base", WindGeneratorBaseBlock::new, BlockMachineBase.machineProperties());
 	// ---- 用电 ----
 	public static final CoalSynthesizerBlock COAL_SYNTHESIZER =
 			register("coal_synthesizer", CoalSynthesizerBlock::new, BlockMachineBase.machineProperties());

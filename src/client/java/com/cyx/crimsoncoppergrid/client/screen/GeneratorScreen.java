@@ -1,7 +1,6 @@
 package com.cyx.crimsoncoppergrid.client.screen;
 
 import com.cyx.crimsoncoppergrid.common.menu.GeneratorMenu;
-import com.cyx.crimsoncoppergrid.common.powerSystem.PowerSystem;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -10,28 +9,33 @@ import net.minecraft.world.entity.player.Inventory;
 /**
  * 两台「只有电、没有物品栏」的发电机共用的面板：太阳能、风力。
  *
- * <p>统一画一根电量条 + 一行「存量 / 容量」，下面留给子类写各自的两行说明。
- * 说明文字里的数值直接引用方块实体上的公开常量（例如
- * {@code SolarGeneratorBlockEntity.MAX_OUTPUT}）—— 它们都是编译期常量，
- * 客户端不需要任何额外的同步就能显示正确。
+ * <p>这里只提供排版基准（中心线与行距），内容全交给子类的 {@link #drawInfo}。
  *
- * <h2>为什么不用界面里那台机器的「实时输出」</h2>
- * 发电量是在服务端的 tick 里算的，客户端拿不到（{@code currentOutput()} 在客户端恒为 0）。
- * 与其为了显示一个随时在变的数字再加一条同步通道，不如显示额定值 ——
- * 玩家真正需要知道的是「这台机器最多能给多少」，实时发不发得出来看方块上的
- * 「正在工作」贴图就够了。
+ * <h2>为什么不画电量条了</h2>
+ * 两台发电机的内部缓冲都只有 {@code CAPACITY}（1000 FE）：太阳能 2.5 秒就填满，
+ * 风力满输出也只要 33 秒。推流模型下旁边没接东西就贴着上限、接了负载又被推空，
+ * 无论哪种情况这个读数都对玩家没有信息量 —— 玩家真正想知道的是
+ * 「现在到底在不在发电、在发多少、没在发是为什么」。所以两台机器都改成一句话式的实时读数：
+ * 太阳能报状态（含停机原因），风力报当前输出 + 塔高 + 档位表。
+ *
+ * <h2>为什么说明文字里的数值不用同步</h2>
+ * 额定值之类的常量直接引用方块实体上的公开字段或静态方法（例如
+ * {@code WindGeneratorBlockEntity.outputForTier(int)}）—— 它们都是编译期能算出来的，
+ * 客户端不需要任何额外的同步就能显示正确。只有<b>随世界变化</b>的量
+ * （太阳能的状态、风力的输出与塔高）才走 {@code ContainerData}。
  */
 public abstract class GeneratorScreen<T extends GeneratorMenu> extends MachineScreen<T> {
 
-	/** 电量条的位置与尺寸。 */
-	protected static final int ENERGY_X = 28;
-	protected static final int ENERGY_Y = 26;
-	protected static final int ENERGY_WIDTH = 120;
-	protected static final int ENERGY_HEIGHT = 14;
 	/** 界面的水平中心线（176 / 2）。 */
 	protected static final int CENTER_X = 88;
-	/** 说明文字的第一行基线；第二行是它 + 12。 */
-	protected static final int INFO_Y = 50;
+
+	/**
+	 * 正文行距。
+	 *
+	 * <p>机器区（y 16~78）垂直只有 62px，一行文字占 9px，所以最多排 4 行 ——
+	 * 子类自己决定从哪一行开始，别超过这个数，否则会压到下面的玩家背包标题上。
+	 */
+	protected static final int LINE_HEIGHT = 12;
 
 	protected GeneratorScreen(T menu, Inventory playerInventory, Component title) {
 		super(menu, playerInventory, title);
@@ -40,18 +44,9 @@ public abstract class GeneratorScreen<T extends GeneratorMenu> extends MachineSc
 	@Override
 	protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		super.extractLabels(graphics, mouseX, mouseY);
-
-		long stored = menu.getStored();
-		long capacity = menu.getCapacity();
-		double ratio = capacity > 0 ? (double) stored / capacity : 0.0D;
-		drawBar(graphics, ENERGY_X, ENERGY_Y, ENERGY_WIDTH, ENERGY_HEIGHT, ratio, ENERGY_COLOR);
-		drawCenteredText(graphics, Component.translatable("gui.crimsoncoppergrid.energy_amount",
-				PowerSystem.getLocalizedPower(stored), PowerSystem.getLocalizedPower(capacity)),
-				CENTER_X, ENERGY_Y + 3, 0xFFFFFFFF);
-
 		drawInfo(graphics);
 	}
 
-	/** 子类在这里写自己的说明文字（两行为宜，超出会压到玩家背包上）。 */
+	/** 子类在这里写自己的说明文字（4 行为宜，超出会压到玩家背包上）。 */
 	protected abstract void drawInfo(GuiGraphicsExtractor graphics);
 }

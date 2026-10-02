@@ -70,6 +70,16 @@ public abstract class MachineMenu extends AbstractContainerMenu {
 		return ContainerDataCodec.read(data, firstIndex);
 	}
 
+	/**
+	 * 从 {@link ContainerData} 里读回一个小整数（状态码、格数这类）。
+	 *
+	 * <p>只占一格的字段可以直接读：原版同步用的是 16 位，所以取值天然被限制在
+	 * {@code short} 范围内 —— 小整数够用，超出的部分要按 {@link #readLong} 那样拆格。
+	 */
+	protected int readData(int index) {
+		return data.get(index);
+	}
+
 	/** 子类在这里 {@code addSlot}。没有物品槽的机器留空即可。 */
 	protected abstract void addMachineSlots(Container machine);
 

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "L": "minecraft:lightning_rod",
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "CLC",
+    "CRC",
+    "CCC"
+  ],
+  "result": {
+    "id": "crimsoncoppergrid:wind_generator_base"
+  }
+}

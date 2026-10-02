@@ -46,11 +46,13 @@ public class BatteryScreen extends MachineScreen<BatteryMenu> {
 				CENTER_X, BAR_Y + BAR_HEIGHT + 8, LABEL_COLOR);
 
 		long change = menu.getPowerChange();
+		// 模板里已经写了「FE/t」，所以数值走不带单位的版本
 		Component status = change > 0
-				? Component.translatable("gui.crimsoncoppergrid.battery.charging", PowerSystem.getLocalizedPower(change))
+				? Component.translatable("gui.crimsoncoppergrid.battery.charging",
+						PowerSystem.getLocalizedPowerNoSuffix(change))
 				: change < 0
 						? Component.translatable("gui.crimsoncoppergrid.battery.discharging",
-								PowerSystem.getLocalizedPower(-change))
+								PowerSystem.getLocalizedPowerNoSuffix(-change))
 						: Component.translatable("gui.crimsoncoppergrid.battery.idle");
 		drawCenteredText(graphics, status, CENTER_X, BAR_Y + BAR_HEIGHT + 20, LABEL_COLOR);
 	}

@@ -41,9 +41,10 @@ public class CoalSynthesizerScreen extends MachineScreen<CoalSynthesizerMenu> {
 				PowerSystem.getLocalizedPower(stored), PowerSystem.getLocalizedPower(capacity)),
 				CENTER_X, ENERGY_Y + 2, 0xFFFFFFFF);
 
+		// 模板里已经写了「FE」，数值本身不能再带单位
 		drawCenteredText(graphics,
 				Component.translatable("gui.crimsoncoppergrid.coal.rate",
-						PowerSystem.getLocalizedPower(CoalSynthesizerBlockEntity.FE_PER_COAL)),
+						PowerSystem.getLocalizedPowerNoSuffix(CoalSynthesizerBlockEntity.FE_PER_COAL)),
 				CENTER_X, HINT_Y, LABEL_COLOR);
 	}
 }

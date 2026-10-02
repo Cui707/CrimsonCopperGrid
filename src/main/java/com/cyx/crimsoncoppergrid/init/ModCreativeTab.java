@@ -29,6 +29,7 @@ public final class ModCreativeTab {
 				output.accept(ModBlocks.FUEL_GENERATOR);
 				output.accept(ModBlocks.SOLAR_GENERATOR);
 				output.accept(ModBlocks.WIND_GENERATOR);
+				output.accept(ModBlocks.WIND_GENERATOR_BASE);
 				output.accept(ModBlocks.COAL_SYNTHESIZER);
 				output.accept(ModBlocks.LAVA_GENERATOR);
 				output.accept(ModBlocks.ELECTRIC_FURNACE);

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "crimsoncoppergrid:block/wind_generator_base"
+    }
+  }
+}
