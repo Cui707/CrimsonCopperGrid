@@ -8,7 +8,6 @@ import com.cyx.crimsoncoppergrid.blockentity.CoalSynthesizerBlockEntity;
 import com.cyx.crimsoncoppergrid.blockentity.ElectricFurnaceBlockEntity;
 import com.cyx.crimsoncoppergrid.blockentity.FuelGeneratorBlockEntity;
 import com.cyx.crimsoncoppergrid.blockentity.LavaGeneratorBlockEntity;
-import com.cyx.crimsoncoppergrid.blockentity.PowerControllerBlockEntity;
 import com.cyx.crimsoncoppergrid.blockentity.SolarGeneratorBlockEntity;
 import com.cyx.crimsoncoppergrid.blockentity.WindGeneratorBlockEntity;
 import com.cyx.crimsoncoppergrid.blockentity.cable.CableBlockEntity;
@@ -59,9 +58,6 @@ public final class ModBlockEntities {
 
 	public static final BlockEntityType<ElectricFurnaceBlockEntity> ELECTRIC_FURNACE = register(
 			"electric_furnace", ElectricFurnaceBlockEntity::new, ModBlocks.ELECTRIC_FURNACE);
-
-	public static final BlockEntityType<PowerControllerBlockEntity> POWER_CONTROLLER = register(
-			"power_controller", PowerControllerBlockEntity::new, ModBlocks.POWER_CONTROLLER);
 
 	private ModBlockEntities() {
 	}

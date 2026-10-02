@@ -9,7 +9,6 @@
   "block.crimsoncoppergrid.coal_synthesizer": "Coal Synthesizer",
   "block.crimsoncoppergrid.lava_generator": "Lava Generator",
   "block.crimsoncoppergrid.electric_furnace": "Electric Furnace",
-  "block.crimsoncoppergrid.power_controller": "Power Controller",
   "gui.crimsoncoppergrid.energy_amount": "%s / %s",
   "gui.crimsoncoppergrid.battery.energy": "Charge",
   "gui.crimsoncoppergrid.battery.charging": "Charging +%s /t",
@@ -21,10 +20,5 @@
   "gui.crimsoncoppergrid.solar.condition": "Daytime, clear sky, open to the sky above",
   "gui.crimsoncoppergrid.wind.rated": "Rated output %s - %s FE/t",
   "gui.crimsoncoppergrid.wind.condition": "Higher placement gives more output; keep the block above clear",
-  "gui.crimsoncoppergrid.lava.hint": "Empty bucket -> lava bucket",
-  "gui.crimsoncoppergrid.controller.disconnected": "Not connected - place the controller next to a cable",
-  "gui.crimsoncoppergrid.controller.cables": "Cables %s - pool %s / %s FE",
-  "gui.crimsoncoppergrid.controller.generators": "Generators %s - max %s FE/t",
-  "gui.crimsoncoppergrid.controller.consumers": "Consumers %s - max %s FE/t",
-  "gui.crimsoncoppergrid.controller.batteries": "Batteries %s - %s / %s FE"
+  "gui.crimsoncoppergrid.lava.hint": "Empty bucket -> lava bucket"
 }

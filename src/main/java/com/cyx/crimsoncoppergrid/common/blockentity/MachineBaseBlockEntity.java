@@ -82,6 +82,7 @@ public abstract class MachineBaseBlockEntity extends BlockEntity
 		tickTime++;
 
 		if (!(level instanceof net.minecraft.server.level.ServerLevel)) {
+			clientTick();
 			return;
 		}
 
@@ -95,6 +96,18 @@ public abstract class MachineBaseBlockEntity extends BlockEntity
 
 	/** 子类的服务端逻辑。客户端不会走到这里。 */
 	protected void serverTick() {
+	}
+
+	/**
+	 * 子类的客户端逻辑，默认什么也不做。
+	 *
+	 * <p>绝大多数机器不需要它 —— 界面与贴图要的数据都由方块实体同步包送到客户端。
+	 * 只有「渲染需要连续变化的量」的机器才用得上：风力发电机的叶轮角度就推进在这里。
+	 *
+	 * <p>注意 {@link com.cyx.crimsoncoppergrid.common.blocks.BlockMachineBase#getTicker}
+	 * 默认只在服务端返回 ticker，所以想用这个钩子的机器必须自己覆写 {@code getTicker}。
+	 */
+	protected void clientTick() {
 	}
 
 	// ------------------------------------------------------------ 方块状态

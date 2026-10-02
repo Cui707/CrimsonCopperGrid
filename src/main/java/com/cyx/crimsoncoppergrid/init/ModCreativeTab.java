@@ -31,9 +31,8 @@ public final class ModCreativeTab {
 				output.accept(ModBlocks.WIND_GENERATOR);
 				output.accept(ModBlocks.COAL_SYNTHESIZER);
 				output.accept(ModBlocks.LAVA_GENERATOR);
-			output.accept(ModBlocks.ELECTRIC_FURNACE);
-			output.accept(ModBlocks.POWER_CONTROLLER);
-		})
+				output.accept(ModBlocks.ELECTRIC_FURNACE);
+			})
 			.build();
 
 	private ModCreativeTab() {

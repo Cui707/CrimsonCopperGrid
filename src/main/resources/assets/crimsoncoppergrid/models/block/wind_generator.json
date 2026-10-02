@@ -2,45 +2,35 @@
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "minecraft:block/copper_block",
-    "frame": "minecraft:block/copper_block",
-    "blade": "minecraft:block/white_wool",
-    "core": "minecraft:block/redstone_block"
+    "all": "minecraft:block/copper_block",
+    "label": "crimsoncoppergrid:block/wind_generator_label",
+    "label_en": "crimsoncoppergrid:block/wind_generator_label_en"
   },
   "elements": [
     {
       "from": [0, 0, 0],
-      "to": [16, 4, 16],
+      "to": [16, 16, 16],
       "faces": {
-        "down": {"texture": "#core"},
-        "up": {"texture": "#frame"},
-        "north": {"texture": "#frame"},
-        "south": {"texture": "#frame"},
-        "west": {"texture": "#frame"},
-        "east": {"texture": "#frame"}
+        "down": {"texture": "#all", "cullface": "down"},
+        "up": {"texture": "#all", "cullface": "up"},
+        "north": {"texture": "#all", "cullface": "north"},
+        "south": {"texture": "#all", "cullface": "south"},
+        "west": {"texture": "#all", "cullface": "west"},
+        "east": {"texture": "#all", "cullface": "east"}
       }
     },
     {
-      "from": [4, 4, 4],
-      "to": [12, 10, 12],
+      "from": [1, 1, -0.05],
+      "to": [15, 15, 0.05],
       "faces": {
-        "down": {"texture": "#frame"},
-        "up": {"texture": "#core"},
-        "north": {"texture": "#frame"},
-        "south": {"texture": "#frame"},
-        "west": {"texture": "#frame"},
-        "east": {"texture": "#frame"}
+        "north": {"uv": [0, 0, 16, 16], "texture": "#label"}
       }
     },
     {
-      "from": [7, 10, 1],
-      "to": [9, 12, 15],
+      "from": [1, 1, 15.95],
+      "to": [15, 15, 16.05],
       "faces": {
-        "down": {"texture": "#blade"},
-        "up": {"texture": "#blade"},
-        "north": {"texture": "#blade"},
-        "south": {"texture": "#blade"},
-        "west": {"texture": "#blade"},
-        "east": {"texture": "#blade"}
+        "south": {"uv": [0, 0, 16, 16], "texture": "#label_en"}
       }
     }
   ]

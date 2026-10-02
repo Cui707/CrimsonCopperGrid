@@ -9,7 +9,6 @@
   "block.crimsoncoppergrid.coal_synthesizer": "电力煤炭合成机",
   "block.crimsoncoppergrid.lava_generator": "电力岩浆机",
   "block.crimsoncoppergrid.electric_furnace": "电力熔炉",
-  "block.crimsoncoppergrid.power_controller": "电力控制器",
   "gui.crimsoncoppergrid.energy_amount": "%s / %s",
   "gui.crimsoncoppergrid.battery.energy": "电量",
   "gui.crimsoncoppergrid.battery.charging": "正在充电 +%s /t",
@@ -21,10 +20,5 @@
   "gui.crimsoncoppergrid.solar.condition": "白天 · 晴天 · 正上方露天时发电",
   "gui.crimsoncoppergrid.wind.rated": "额定输出 %s – %s FE/t",
   "gui.crimsoncoppergrid.wind.condition": "位置越高输出越大，正上方需留空",
-  "gui.crimsoncoppergrid.lava.hint": "空桶 → 岩浆桶",
-  "gui.crimsoncoppergrid.controller.disconnected": "未接入电网：把控制器贴着导线放置",
-  "gui.crimsoncoppergrid.controller.cables": "导线 %s 段 · 池内 %s / %s FE",
-  "gui.crimsoncoppergrid.controller.generators": "发电 %s 台 · 上限 %s FE/t",
-  "gui.crimsoncoppergrid.controller.consumers": "用电 %s 台 · 上限 %s FE/t",
-  "gui.crimsoncoppergrid.controller.batteries": "储电 %s 台 · %s / %s FE"
+  "gui.crimsoncoppergrid.lava.hint": "空桶 → 岩浆桶"
 }

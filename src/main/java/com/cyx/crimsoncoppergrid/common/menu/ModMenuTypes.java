@@ -40,9 +40,6 @@ public final class ModMenuTypes {
 	public static final MenuType<LavaGeneratorMenu> LAVA_GENERATOR =
 			register("lava_generator", LavaGeneratorMenu::new);
 
-	public static final MenuType<PowerControllerMenu> POWER_CONTROLLER =
-			register("power_controller", PowerControllerMenu::new);
-
 	private ModMenuTypes() {
 	}
 

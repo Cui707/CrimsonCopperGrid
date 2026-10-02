@@ -6,9 +6,9 @@
     "R": "minecraft:redstone"
   },
   "pattern": [
-    "CCC",
+    "RCC",
     "CFC",
-    "CRC"
+    "CCR"
   ],
   "result": {
     "id": "crimsoncoppergrid:fuel_generator"

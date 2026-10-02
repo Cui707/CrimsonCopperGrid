@@ -22,13 +22,13 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
 > 已在本机实测通过：**JDK 27 + Gradle 9.8.0 + Loom 1.18.2** 下执行 `gradlew build`，
 > 并用 `gradlew runClient` / `runServer` 实机验证（模组加载、能量能力注册、导线传电、
 > 方块与物品渲染均正常，详见下方运行期踩坑记录）。
-> 产物 `build/libs/crimsoncoppergrid-0.0.11.jar`，字节码 major 69（Java 25）。
+> 产物 `build/libs/crimsoncoppergrid-1.0.0.jar`，字节码 major 69（Java 25）。
 
 > **映射说明**：Yarn 目前**没有** 26.3 的映射（`meta.fabricmc.net/v2/versions/yarn/26.3` 返回空数组），
 > 所以 `build.gradle` 里**不写 `mappings` 行**，由 Loom 1.18 默认采用 Mojang 官方映射。
 > 这意味着模组代码使用官方类名，例如 `net.minecraft.resources.Identifier`（旧的 Yarn 名 `ResourceLocation` 不再适用）。
 
-## 已实现的内容（0.0.11）
+## 已实现的内容（1.0.0）
 
 | 分类 | 方块/物品 | 数值与行为 |
 | --- | --- | --- |
@@ -36,12 +36,11 @@ A lightweight Fabric power mod built only with vanilla copper and redstone.
 | 输电 | 铜制电闸 | 右键或红石控制通断；**断开时在组网层面直接断路**，两侧成为彼此独立的电网。外观是**在线开关**（面板 + 可扳动的拉杆手柄，见「方块外观」） |
 | 发电 | 燃料发电机 | 1 燃料刻 = 40 FE。**接受原版全部燃料**（木头、煤炭、木炭、岩浆桶、干海带块等）；燃烧时长与原版熔炉一致。缓冲 4 000 FE |
 | 发电 | 太阳能发电机 | 20 FE/t，仅白天 + 晴天 + 正上方天空光满值；缓冲 1 000 FE |
-| 发电 | 风力发电机 | 10→30 FE/t，随 Y 高度线性增长（200 格封顶）；正上方需留空作为迎风面 |
+| 发电 | 风力发电机 | 10→30 FE/t，随 Y 高度线性增长（200 格封顶）；正上方需留空作为迎风面。**外观是铜块 + 正面挂一个会转的三叶片叶轮**（移植自 TechReborn） |
 | 储能 | 铜制电池 | 1 000 000 FE 容量，单 tick 收/发各 1 000 FE。外观是**立式电芯**（红石环带通电发亮，见「方块外观」） |
 | 用电 | 电力熔炉 | 10 FE/烧炼刻 × 200 刻 = **2 000 FE/物品**；缓冲正好 2 000 FE（存量即进度）。外观是**铜块刻字**（正面「电力熔炉」、背面「ELECTRIC FURNACE」，见「方块外观」） |
-| 用电 | 电力煤炭合成机 | **8 000 FE = 1 块煤**，内部可攒 64 块，每 20 刻自动送进相邻容器。外观是**铜块刻字**（正面「煤炭合成」、背面「COAL SYNTHESIZER」，见「方块外观」） |
+| 用电 | 电力煤炭合成机 | **8 000 FE = 1 块煤**，内部可攒 64 块，每 20 刻自动送进相邻容器。外观是**铜块刻字**（正面「电力煤炭合成机」、背面「COAL SYNTHESIZER」，见「方块外观」） |
 | 用电 | 电力岩浆机 | 界面像熔炉：左槽放空桶，右槽出岩浆桶，中间进度；每 **600 刻**灌满一桶，每桶耗电 **30 000 FE** |
-| 用电 | 电力控制器 | 电网总览：发电输出 / 用电输入 / 电池存量 / 导线与设备计数 |
 
 这些机器方块全部走同一套能量基类，按档位限流（MICRO 8 / LOW 32 / MEDIUM 128 / HIGH 512 /
 EXTREME 2 048 / INSANE 8 192 / INFINITE）。
@@ -58,7 +57,7 @@ EXTREME 2 048 / INSANE 8 192 / INFINITE）。
 
 ## 界面层
 
-八台设备各有自己的界面，**全部空手右键方块打开**（有物品在手上时仍走各自的快捷交互，
+七台设备各有自己的界面，**全部空手右键方块打开**（有物品在手上时仍走各自的快捷交互，
 例如煤炭合成机取煤）：
 
 | 界面 | 布局 |
@@ -69,7 +68,6 @@ EXTREME 2 048 / INSANE 8 192 / INFINITE）。
 | 电力煤炭合成机 | 产物槽 + 电量条（**缓冲容量即一块煤的电量，所以这条同时也是进度条**） |
 | 太阳能 / 风力发电机 | 电量条 + 额定输出与发电条件说明（客户端拿不到实时输出，见下） |
 | 电力岩浆机 | 左放空桶 + 右出岩浆桶 + 灌注进度条 + 电量条 |
-| 电力控制器 | 电网总览：发电输出 / 用电输入 / 电池存量 / 导线与设备计数 |
 
 **整个界面层不新增任何美术资源**：背景直接复用原版 `container/furnace.png`，
 机器区用一块原版底色的面板盖掉后按各机器自己的布局重画；槽位凹槽原本画在那张贴图里，
@@ -134,12 +132,14 @@ buffer.writeShort(this.value);  // 数值：16 位
 - 背面贴图 `coal_synthesizer_label_en.png`，印 **「COAL SYNTHESIZER」**。
 - 与电力熔炉共享同一套 blockstate 旋转逻辑，刻字面跟随 `FACING`。
 
-### 电力控制器：铜块 + 双面刻字
+### 风力发电机：铜块机壳 + TechReborn 叶轮
 
-- 六个面全部改用原版 `copper_block`（原先是正面红石块、顶/底铁块，现在与其他机器统一）。
-- 正面贴图 `power_controller_label.png`，黑体 2 行刻 **「电力控制器」**。
-- 背面贴图 `power_controller_label_en.png`，印 **「POWER CONTROLLER」**。
-- 与电力熔炉、电力煤炭合成机共享同一份 blockstate 旋转逻辑，刻字面跟随 `FACING`。
+- 方块模型回到铜块，六面原版 `copper_block`，正面「风力发电机」、背面「WIND GENERATOR」。
+- 真正「像风车」的部分是一个**客户端方块实体渲染器**：三个带桨距角的叶片绕水平轴旋转，
+  叶轮挂在方块正面外侧（叶片扫过的圆直径约 3 格），对应贴图是移植自 TechReborn 的
+  `wind_mill_turbine.png`（MIT）。
+- 转速随风速变化：上方通透时叶轮由慢到快加速；被封住时慢慢停下，有惯性感。
+- 物品栏图标是独立绘制的 32×32 风车小图（塔 + 叶轮），和铜块机器的物品图标风格区分开。
 
 ### 铜制电闸：在线开关，不是一块铜
 
@@ -177,7 +177,7 @@ buffer.writeShort(this.value);  // 数值：16 位
   几乎看不见，红环带才醒目
 
 > 碰撞/选取形状**故意保持满块**：电池是机器不是装饰，满块支持顶面放火把/红石，
-> 也和其余九台机器保持一致。
+> 也和其余八台机器保持一致。
 
 ## 电力系统设计
 
@@ -225,10 +225,10 @@ buffer.writeShort(this.value);  // 数值：16 位
     │   │   │   │   └── PowerSystem.java                数值格式化（FE 单位）
     │   │   │   ├── blockentity/MachineBaseBlockEntity.java  机器基类（tick / 同步 / 生命周期）
     │   │   │   └── blocks/BlockMachineBase.java        方块基类（FACING + ACTIVE）
-    │   │   ├── blockentity/                    九台设备的方块实体
+    │   │   ├── blockentity/                    八台设备的方块实体
     │   │   │   └── cable/                      导线：CableBlockEntity / CableTickManager /
     │   │   │                                   SwitchBlockEntity / OfferedEnergyStorage
-    │   │   ├── blocks/                         对应的九个方块类
+    │   │   ├── blocks/                         对应的八个方块类
     │   │   │   └── cable/                      CableBlock / SwitchBlock / CableShapeUtil
     │   │   ├── init/                           方块 / 方块实体 / 物品栏 / 能量能力注册
     │   │   └── mixin/                          服务端注入示例
@@ -352,6 +352,8 @@ wrapper 的 `networkTimeout` 已从 10 秒提高到 300 秒，`retries` 设为 2
 
 | 版本 | 内容 |
 | --- | --- |
+| 1.0.0 | **首个正式版**：九台方块、七套界面、九条配方全部实机跑通，功能面收敛完成，脱离 0.0.x 开发序列。**删除电力控制器**：整体移除方块 / 方块实体 / 菜单 / 界面 / 模型 / 贴图 / 战利品表 / 合成表与全部相关语言键（`controller.*` 六条），注册链与创造模式物品栏同步清理。原因：电网总览的读数依赖对整张电网的实时扫描，与「推流 + 共享缓冲池」的能量模型耦合过深，维护成本高于它带来的价值；模组回到「输电 / 储能 / 发电 / 用电」四类纯功能方块。**修燃料发电机配方与电力熔炉撞车**：两者原本都是 `CCC / CFC / CRC`（铜锭围熔炉、下方红石），原版 `RecipeManager` 遇重复配方只保留先加载的一条并记警告，另一条静默失效。燃料发电机改为**红石挪到对角**的 `RCC / CFC / CCR`，电力熔炉保持原样。|
+| 0.0.12 | **风力发电机外观重做**：方块模型改为铜块 + 双面刻字（正面「风力发电机」、背面「WIND GENERATOR」），正面外侧加一个移植自 TechReborn 的三叶片旋转叶轮（`TurbineRenderer` + `wind_mill_turbine.png`），转速随风速变化、带加速/减速惯性；物品栏图标改为独立的风车小图。**客户端方块实体动画**：为风力发电机单独开启客户端 tick，在 `WindGeneratorBlockEntity#clientTick` 里推进 `bladeAngle` / `spinSpeed`；`MachineBaseBlockEntity` 新增 `clientTick()` 钩子供将来复用。 |
 | 0.0.11 | **电力煤炭合成机刻字改成完整物品名**：正面由「煤炭合成」改为「电力煤炭合成机」（3 行排布），背面保持「COAL SYNTHESIZER」；刻字贴图统一提升到 256×256，中英文字都更锐利。**电力控制器改为铜块刻字**：六个面全部用原版铜块，正面「电力控制器」、背面「POWER CONTROLLER」，与电力熔炉/煤炭合成机共用同一套双面刻字模型结构。**删除电网总览器**：移除 `EnergyMeterItem`、物品注册、模型、合成表与所有相关语言键；创造模式物品栏里不再显示。 |
 | 0.0.10 | **电力煤炭合成机外观重做**：改为铜方块 + 双面刻字（正面「煤炭合成」、背面「COAL SYNTHESIZER」），与电力熔炉共用同一套模型结构。**电力熔炉补英文背面**：正面「电力熔炉」，背面「ELECTRIC FURNACE」。**燃料发电机燃料数据化**：改用 `DataComponents.COOKING_FUEL` 判定原版燃料，木头、煤炭、木炭、岩浆桶、干海带块等原版熔炉能烧的都能烧；燃烧时长走原版 `context_int_provider` + LootContext 解析，与熔炉一致；修复空燃料槽存档报错（`ItemStack.CODEC` 不允许空栈 → 改用 `OPTIONAL_CODEC`）。 |
 | 0.0.9 | **修 GUI 文字重影/模糊**：`MachineScreen` 的 `drawText` / `drawCenteredText` 改为显式传 `dropShadow=false`，与原版容器标签保持一致；标题改居中。**修电力熔炉/煤炭合成机右键打不开界面**：方块 `useItemOn` 在主手为空时必须返回 `InteractionResult.TRY_WITH_EMPTY_HAND` 才会继续走 `useWithoutItem` 开界面，返回 `PASS` 会把交互吞掉。**电力熔炉外观重做**：改为铜方块 + 正面透明贴图刻「电力熔炉」四字，2×2 排布，blockstate 加 `FACING` 让刻字面朝向放置者。**电力岩浆机逻辑重构**：从「内部岩浆罐」改为「左槽放空桶 → 右槽出岩浆桶」的灌注机，中间是进度条，每 600 刻灌满一桶，耗电 30 000 FE/桶；方块层不再处理桶交互，全部走 GUI。 |
