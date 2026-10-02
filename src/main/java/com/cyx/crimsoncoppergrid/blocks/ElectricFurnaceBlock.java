@@ -3,9 +3,7 @@ package com.cyx.crimsoncoppergrid.blocks;
 import com.cyx.crimsoncoppergrid.blockentity.ElectricFurnaceBlockEntity;
 import com.cyx.crimsoncoppergrid.common.blocks.BlockMachineBase;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -18,9 +16,8 @@ import net.minecraft.world.phys.BlockHitResult;
 /**
  * 电力熔炉：用电烧炼原版熔炉配方。
  *
- * <p>手持物品右键 = 往输入槽放料；空手右键 = 查看进度。
- * 完整 GUI（真正的物品栏界面）留到界面阶段统一做，
- * 现在先保证「能塞料、能出料、进度可见」。
+ * <p>手持物品右键 = 往输入槽快捷放料；空手右键 = 打开界面（见
+ * {@link BlockMachineBase#useWithoutItem}，料也能在界面里放）。
  */
 public class ElectricFurnaceBlock extends BlockMachineBase {
 
@@ -66,20 +63,6 @@ public class ElectricFurnaceBlock extends BlockMachineBase {
 		}
 		if (!player.hasInfiniteMaterials()) {
 			stack.shrink(moved);
-		}
-		return InteractionResult.SUCCESS_SERVER;
-	}
-
-	@Override
-	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
-			BlockHitResult hit) {
-		if (level.isClientSide()) {
-			return InteractionResult.SUCCESS;
-		}
-		if (level.getBlockEntity(pos) instanceof ElectricFurnaceBlockEntity machine) {
-			int percent = machine.getProgress() * 100 / Math.max(1, machine.getMaxProgress());
-			player.sendSystemMessage(Component.translatable("block.crimsoncoppergrid.electric_furnace.status",
-					percent).withStyle(ChatFormatting.GOLD));
 		}
 		return InteractionResult.SUCCESS_SERVER;
 	}

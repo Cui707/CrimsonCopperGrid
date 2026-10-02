@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -41,7 +42,44 @@ import team.reborn.energy.api.base.SimpleSidedEnergyContainer;
  * 「升级加成」字段与 {@code IListInfoProvider} 工具提示。CCG 没有升级体系，因此不引入；
  * 工具提示会在界面阶段随菜单一起补齐。
  */
-public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity {
+public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity implements ContainerData {
+
+	// ------------------------------------------------------------ 界面数据同步
+	// ContainerData 只有 int 槽位，而电量是 long，所以每个值拆成「低 32 位 + 高 32 位」两格。
+	// 服务端这一份直接读真实字段，客户端那一份由 SimpleContainerData 承接同步值。
+
+	public static final int DATA_STORED_LOW = 0;
+	public static final int DATA_STORED_HIGH = 1;
+	public static final int DATA_CAPACITY_LOW = 2;
+	public static final int DATA_CAPACITY_HIGH = 3;
+	/** 最长的那一份（含子类追加的字段）。子类覆写时要一并覆写 {@link #getCount()}。 */
+	public static final int DATA_COUNT = 4;
+
+	@Override
+	public int getCount() {
+		return DATA_COUNT;
+	}
+
+	@Override
+	public int get(int index) {
+		return switch (index) {
+			case DATA_STORED_LOW -> (int) (getStored() & 0xFFFFFFFFL);
+			case DATA_STORED_HIGH -> (int) (getStored() >>> 32);
+			case DATA_CAPACITY_LOW -> (int) (getMaxStoredPower() & 0xFFFFFFFFL);
+			case DATA_CAPACITY_HIGH -> (int) (getMaxStoredPower() >>> 32);
+			default -> 0;
+		};
+	}
+
+	/**
+	 * 只有客户端会走到这里（服务端那份读的是真实字段，同步是单向的）。
+	 * 客户端用 {@code SimpleContainerData} 时它的 {@code set} 自己会存，
+	 * 所以这里保持空实现，子类也不需要关心。
+	 */
+	@Override
+	public void set(int index, int value) {
+	}
+
 
 	private final SimpleSidedEnergyContainer energyContainer = new SimpleSidedEnergyContainer() {
 		@Override

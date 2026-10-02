@@ -1,6 +1,7 @@
 package com.cyx.crimsoncoppergrid;
 
 import com.cyx.crimsoncoppergrid.blockentity.cable.CableTickManager;
+import com.cyx.crimsoncoppergrid.common.menu.ModMenuTypes;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 import com.cyx.crimsoncoppergrid.init.ModBlocks;
 import com.cyx.crimsoncoppergrid.init.ModCreativeTab;
@@ -39,6 +40,9 @@ public class CrimsonCopperGrid implements ModInitializer {
 		ModBlockEntities.init();
 		ModItems.init();
 		ModCreativeTab.init();
+
+		// 界面：菜单类型（屏幕那半在客户端入口注册）
+		ModMenuTypes.init();
 
 		// 能量能力 + 导线网络结算
 		ModPowerRegistration.init();

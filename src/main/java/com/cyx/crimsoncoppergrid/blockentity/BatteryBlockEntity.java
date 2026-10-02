@@ -1,9 +1,17 @@
 package com.cyx.crimsoncoppergrid.blockentity;
 
+import com.cyx.crimsoncoppergrid.common.menu.BatteryMenu;
 import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
+import org.jspecify.annotations.Nullable;
+
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -22,12 +30,31 @@ import net.minecraft.world.level.storage.ValueOutput;
  * 「电从 A 扣了但 B 没收到」的半截状态 —— 每一步都由 Fabric 的
  * {@code Transaction} 兜底。
  */
-public class BatteryBlockEntity extends PowerAcceptorBlockEntity {
+public class BatteryBlockEntity extends PowerAcceptorBlockEntity implements MenuProvider {
 
 	/** 容量。1 000 000 FE ≈ 燃料发电机烧 15.6 块煤的产出。 */
 	public static final long CAPACITY = 1_000_000L;
 	/** 单 tick 的输入 / 输出上限。 */
 	public static final long MAX_IO = 1_000L;
+
+	// ---- 界面数据：在父类的「电量 + 容量」四格之后追加净流量 ----
+	public static final int DATA_POWER_CHANGE_LOW = PowerAcceptorBlockEntity.DATA_COUNT;
+	public static final int DATA_POWER_CHANGE_HIGH = PowerAcceptorBlockEntity.DATA_COUNT + 1;
+	public static final int DATA_COUNT = PowerAcceptorBlockEntity.DATA_COUNT + 2;
+
+	@Override
+	public int getCount() {
+		return DATA_COUNT;
+	}
+
+	@Override
+	public int get(int index) {
+		return switch (index) {
+			case DATA_POWER_CHANGE_LOW -> (int) (powerChange & 0xFFFFFFFFL);
+			case DATA_POWER_CHANGE_HIGH -> (int) (powerChange >> 32);
+			default -> super.get(index);
+		};
+	}
 
 	public BatteryBlockEntity(BlockPos pos, BlockState state) {
 		super(ModBlockEntities.BATTERY, pos, state);
@@ -67,6 +94,19 @@ public class BatteryBlockEntity extends PowerAcceptorBlockEntity {
 	protected void onEnergyChanged() {
 		setChanged();
 		syncWithAll();
+	}
+
+	// ------------------------------------------------------------ 界面
+
+	@Override
+	public Component getDisplayName() {
+		return Component.translatable("block.crimsoncoppergrid.battery");
+	}
+
+	@Nullable
+	@Override
+	public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+		return new BatteryMenu(containerId, playerInventory, this);
 	}
 
 	// ------------------------------------------------------------ 存档

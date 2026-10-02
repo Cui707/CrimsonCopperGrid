@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone",
+    "G": "minecraft:glass_pane"
+  },
+  "pattern": [
+    "CRC",
+    "RGR",
+    "CCC"
+  ],
+  "result": {
+    "id": "crimsoncoppergrid:power_controller"
+  }
+}

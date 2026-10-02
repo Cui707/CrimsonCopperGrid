@@ -9,6 +9,7 @@ import com.cyx.crimsoncoppergrid.blocks.CoalSynthesizerBlock;
 import com.cyx.crimsoncoppergrid.blocks.ElectricFurnaceBlock;
 import com.cyx.crimsoncoppergrid.blocks.FuelGeneratorBlock;
 import com.cyx.crimsoncoppergrid.blocks.LavaGeneratorBlock;
+import com.cyx.crimsoncoppergrid.blocks.PowerControllerBlock;
 import com.cyx.crimsoncoppergrid.blocks.SolarGeneratorBlock;
 import com.cyx.crimsoncoppergrid.blocks.WindGeneratorBlock;
 import com.cyx.crimsoncoppergrid.blocks.cable.CableBlock;
@@ -53,6 +54,9 @@ public final class ModBlocks {
 			register("lava_generator", LavaGeneratorBlock::new, BlockMachineBase.machineProperties());
 	public static final ElectricFurnaceBlock ELECTRIC_FURNACE =
 			register("electric_furnace", ElectricFurnaceBlock::new, BlockMachineBase.machineProperties());
+	// ---- 仪表 ----
+	public static final PowerControllerBlock POWER_CONTROLLER =
+			register("power_controller", PowerControllerBlock::new, BlockMachineBase.machineProperties());
 
 	private ModBlocks() {
 	}

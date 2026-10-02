@@ -21,5 +21,16 @@
   "block.crimsoncoppergrid.lava_generator.tank_full": "罐子已经满了",
   "block.crimsoncoppergrid.lava_generator.tank_empty": "岩浆不足（1 桶 = 1000 mB）",
   "block.crimsoncoppergrid.electric_furnace": "电力熔炉",
-  "block.crimsoncoppergrid.electric_furnace.status": "烧炼进度 %s%%"
+  "block.crimsoncoppergrid.electric_furnace.status": "烧炼进度 %s%%",
+  "block.crimsoncoppergrid.power_controller": "电力控制器",
+  "gui.crimsoncoppergrid.energy_amount": "%s / %s",
+  "gui.crimsoncoppergrid.battery.energy": "电量",
+  "gui.crimsoncoppergrid.battery.charging": "正在充电 +%s /t",
+  "gui.crimsoncoppergrid.battery.discharging": "正在放电 -%s /t",
+  "gui.crimsoncoppergrid.battery.idle": "待机",
+  "gui.crimsoncoppergrid.controller.disconnected": "未接入电网：把控制器贴着导线放置",
+  "gui.crimsoncoppergrid.controller.cables": "导线 %s 段 · 池内 %s / %s FE",
+  "gui.crimsoncoppergrid.controller.generators": "发电 %s 台 · 上限 %s FE/t",
+  "gui.crimsoncoppergrid.controller.consumers": "用电 %s 台 · 上限 %s FE/t",
+  "gui.crimsoncoppergrid.controller.batteries": "储电 %s 台 · %s / %s FE"
 }

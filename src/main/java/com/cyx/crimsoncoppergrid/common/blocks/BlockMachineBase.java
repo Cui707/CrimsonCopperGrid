@@ -5,6 +5,8 @@ import com.cyx.crimsoncoppergrid.common.blockentity.MachineBaseBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -25,6 +27,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * 所有「机器类方块」的公共父类。分层与命名对齐 TechReborn / RebornCore 的
@@ -143,6 +146,39 @@ public abstract class BlockMachineBase extends BaseEntityBlock {
 	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
 		return level.isClientSide() ? null : MachineBaseBlockEntity.ticker();
+	}
+
+	// ------------------------------------------------------------ 界面
+
+	/**
+	 * 方块实体若实现了 {@link MenuProvider}，空手右键即可打开它的界面。
+	 *
+	 * <p>放在基类而不是各个方块里，是为了让「所有机器都能右键打开」只有一个修改点：
+	 * 将来新加的机器只要方块实体实现 {@code MenuProvider}，界面就自动有了。
+	 */
+	@Override
+	protected MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+		BlockEntity blockEntity = level.getBlockEntity(pos);
+		return blockEntity instanceof MenuProvider provider ? provider : null;
+	}
+
+	/**
+	 * 空手右键：能开界面就开界面，否则什么也不做。
+	 *
+	 * <p>26.3 的交互分发是「主手有物品 -> {@code useItemOn}」「主手空 -> 这里」，
+	 * 两者互斥，所以「手持物品放料」与「空手开界面」可以共存而不打架。
+	 */
+	@Override
+	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+			BlockHitResult hit) {
+		MenuProvider provider = getMenuProvider(state, level, pos);
+		if (provider == null) {
+			return InteractionResult.PASS;
+		}
+		if (!level.isClientSide()) {
+			player.openMenu(provider);
+		}
+		return InteractionResult.SUCCESS;
 	}
 
 	// ------------------------------------------------------------ 比较器

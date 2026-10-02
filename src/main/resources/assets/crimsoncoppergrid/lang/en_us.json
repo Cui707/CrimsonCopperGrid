@@ -21,5 +21,16 @@
   "block.crimsoncoppergrid.lava_generator.tank_full": "The tank is full",
   "block.crimsoncoppergrid.lava_generator.tank_empty": "Not enough lava (1 bucket = 1000 mB)",
   "block.crimsoncoppergrid.electric_furnace": "Electric Furnace",
-  "block.crimsoncoppergrid.electric_furnace.status": "Smelting progress %s%%"
+  "block.crimsoncoppergrid.electric_furnace.status": "Smelting progress %s%%",
+  "block.crimsoncoppergrid.power_controller": "Power Controller",
+  "gui.crimsoncoppergrid.energy_amount": "%s / %s",
+  "gui.crimsoncoppergrid.battery.energy": "Charge",
+  "gui.crimsoncoppergrid.battery.charging": "Charging +%s /t",
+  "gui.crimsoncoppergrid.battery.discharging": "Discharging -%s /t",
+  "gui.crimsoncoppergrid.battery.idle": "Idle",
+  "gui.crimsoncoppergrid.controller.disconnected": "Not connected - place the controller next to a cable",
+  "gui.crimsoncoppergrid.controller.cables": "Cables %s - pool %s / %s FE",
+  "gui.crimsoncoppergrid.controller.generators": "Generators %s - max %s FE/t",
+  "gui.crimsoncoppergrid.controller.consumers": "Consumers %s - max %s FE/t",
+  "gui.crimsoncoppergrid.controller.batteries": "Batteries %s - %s / %s FE"
 }

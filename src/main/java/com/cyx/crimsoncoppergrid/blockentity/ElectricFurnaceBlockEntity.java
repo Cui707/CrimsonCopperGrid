@@ -4,13 +4,19 @@ import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 
+import com.cyx.crimsoncoppergrid.common.menu.ElectricFurnaceMenu;
 import com.cyx.crimsoncoppergrid.common.powerSystem.PowerAcceptorBlockEntity;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -28,11 +34,30 @@ import net.minecraft.world.level.storage.ValueOutput;
  * 这里直接复用原版的 {@code RecipeType.SMELTING} 配方表，自己维护一份进度：
  * 每个原版烧炼刻消耗 {@link #FE_PER_COOK_TICK} FE，{@link #COOK_TIME} 刻烧好一个物品。
  */
-public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity {
+public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity implements MenuProvider {
 
 	public static final int SLOT_INPUT = 0;
 	public static final int SLOT_OUTPUT = 1;
 	public static final int SLOT_COUNT = 2;
+
+	// ---- 界面数据：在父类的「电量 + 容量」四格之后追加进度 ----
+	public static final int DATA_PROGRESS = PowerAcceptorBlockEntity.DATA_COUNT;
+	public static final int DATA_MAX_PROGRESS = PowerAcceptorBlockEntity.DATA_COUNT + 1;
+	public static final int DATA_COUNT = PowerAcceptorBlockEntity.DATA_COUNT + 2;
+
+	@Override
+	public int getCount() {
+		return DATA_COUNT;
+	}
+
+	@Override
+	public int get(int index) {
+		return switch (index) {
+			case DATA_PROGRESS -> cookProgress;
+			case DATA_MAX_PROGRESS -> maxProgress;
+			default -> super.get(index);
+		};
+	}
 
 	/** 每个「烧炼刻」消耗的能量。 */
 	public static final long FE_PER_COOK_TICK = 10L;
@@ -215,6 +240,19 @@ public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity {
 	protected void onEnergyChanged() {
 		setChanged();
 		syncWithAll();
+	}
+
+	// ------------------------------------------------------------ 界面
+
+	@Override
+	public Component getDisplayName() {
+		return Component.translatable("block.crimsoncoppergrid.electric_furnace");
+	}
+
+	@Nullable
+	@Override
+	public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+		return new ElectricFurnaceMenu(containerId, playerInventory, this);
 	}
 
 	@Override
