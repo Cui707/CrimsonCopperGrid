@@ -1,5 +1,7 @@
 plugins {
 	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	// java-library 提供 api 配置，供内嵌 Team Reborn Energy 时对外暴露其类型（与 TechReborn 一致）
+	id 'java-library'
 	id 'maven-publish'
 }
 
@@ -32,6 +34,14 @@ dependencies {
 	// Fabric API：技术上是可选的，但基本都会用到。
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
+	// Team Reborn Energy：与 TechReborn 完全同一套能量 API（team.reborn.energy）。
+	// 用 include(...) 把它内嵌进产物 jar（JiJ），因此玩家不需要单独安装它；
+	// transitive = false 是因为它只依赖 fabric-transfer-api-v1，而那一份由 fabric-api 提供，
+	// 不能再打包一份进去。
+	include(api("teamreborn:energy:${project.energy_version}")) {
+		transitive = false
+	}
+
 	// 单元测试：验证电网结算这类纯逻辑，不需要启动游戏
 	testImplementation platform('org.junit:junit-bom:5.11.4')
 	testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -57,6 +67,8 @@ processResources {
 tasks.withType(JavaCompile).configureEach {
 	// MC 26.3 要求的运行时是 Java 25（版本元数据里为 java-runtime-epsilon / majorVersion 25）
 	it.options.release = 25
+	// 让过时 API 的警告直接指出具体位置，而不是只报「使用了已过时的 API」
+	it.options.compilerArgs << '-Xlint:deprecation'
 }
 
 java {

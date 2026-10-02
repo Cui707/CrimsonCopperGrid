@@ -4,8 +4,16 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import com.cyx.crimsoncoppergrid.CrimsonCopperGrid;
+import com.cyx.crimsoncoppergrid.blocks.BatteryBlock;
+import com.cyx.crimsoncoppergrid.blocks.CoalSynthesizerBlock;
+import com.cyx.crimsoncoppergrid.blocks.ElectricFurnaceBlock;
+import com.cyx.crimsoncoppergrid.blocks.FuelGeneratorBlock;
+import com.cyx.crimsoncoppergrid.blocks.LavaGeneratorBlock;
+import com.cyx.crimsoncoppergrid.blocks.SolarGeneratorBlock;
+import com.cyx.crimsoncoppergrid.blocks.WindGeneratorBlock;
 import com.cyx.crimsoncoppergrid.blocks.cable.CableBlock;
 import com.cyx.crimsoncoppergrid.blocks.cable.SwitchBlock;
+import com.cyx.crimsoncoppergrid.common.blocks.BlockMachineBase;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -21,34 +29,30 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
  *
  * <p>顺序有讲究：方块 -> 方块实体（要引用方块）-> 物品 -> 物品栏。
  * 参考 Java 类初始化的时机，由 {@link CrimsonCopperGrid#onInitialize()} 显式触发。
+ *
+ * <p>所有机器方块共用一个属性工厂 {@link BlockMachineBase#machineProperties()}，
+ * 这样「全模组的机器是同一套材质语言」只需要维护一处。
  */
 public final class ModBlocks {
 	// ---- 输电 ----
 	public static final CableBlock CABLE = register("cable", CableBlock::new, CableBlock.cableProperties());
 	public static final SwitchBlock SWITCH = register("switch", SwitchBlock::new, SwitchBlock.switchProperties());
-	public static final com.cyx.crimsoncoppergrid.block.BatteryBlock BATTERY =
-			register("battery", com.cyx.crimsoncoppergrid.block.BatteryBlock::new,
-					com.cyx.crimsoncoppergrid.block.BatteryBlock.batteryProperties());
+	// ---- 储能 ----
+	public static final BatteryBlock BATTERY = register("battery", BatteryBlock::new, BlockMachineBase.machineProperties());
 	// ---- 发电 ----
-	public static final com.cyx.crimsoncoppergrid.block.AbstractGeneratorBlock.Fuel FUEL_GENERATOR =
-			register("fuel_generator", com.cyx.crimsoncoppergrid.block.AbstractGeneratorBlock.Fuel::new,
-					com.cyx.crimsoncoppergrid.block.AbstractGeneratorBlock.generatorProperties());
-	public static final com.cyx.crimsoncoppergrid.block.AbstractGeneratorBlock.Solar SOLAR_GENERATOR =
-			register("solar_generator", com.cyx.crimsoncoppergrid.block.AbstractGeneratorBlock.Solar::new,
-					com.cyx.crimsoncoppergrid.block.AbstractGeneratorBlock.generatorProperties());
-	public static final com.cyx.crimsoncoppergrid.block.AbstractGeneratorBlock.Wind WIND_GENERATOR =
-			register("wind_generator", com.cyx.crimsoncoppergrid.block.AbstractGeneratorBlock.Wind::new,
-					com.cyx.crimsoncoppergrid.block.AbstractGeneratorBlock.generatorProperties());
+	public static final FuelGeneratorBlock FUEL_GENERATOR =
+			register("fuel_generator", FuelGeneratorBlock::new, BlockMachineBase.machineProperties());
+	public static final SolarGeneratorBlock SOLAR_GENERATOR =
+			register("solar_generator", SolarGeneratorBlock::new, BlockMachineBase.machineProperties());
+	public static final WindGeneratorBlock WIND_GENERATOR =
+			register("wind_generator", WindGeneratorBlock::new, BlockMachineBase.machineProperties());
 	// ---- 用电 ----
-	public static final com.cyx.crimsoncoppergrid.block.CoalSynthesizerBlock COAL_SYNTHESIZER =
-			register("coal_synthesizer", com.cyx.crimsoncoppergrid.block.CoalSynthesizerBlock::new,
-					com.cyx.crimsoncoppergrid.block.CoalSynthesizerBlock.machineProperties());
-	public static final com.cyx.crimsoncoppergrid.block.LavaGeneratorBlock LAVA_GENERATOR =
-			register("lava_generator", com.cyx.crimsoncoppergrid.block.LavaGeneratorBlock::new,
-					com.cyx.crimsoncoppergrid.block.LavaGeneratorBlock.machineProperties());
-	public static final com.cyx.crimsoncoppergrid.block.ElectricFurnaceBlock ELECTRIC_FURNACE =
-			register("electric_furnace", com.cyx.crimsoncoppergrid.block.ElectricFurnaceBlock::new,
-					com.cyx.crimsoncoppergrid.block.ElectricFurnaceBlock.machineProperties());
+	public static final CoalSynthesizerBlock COAL_SYNTHESIZER =
+			register("coal_synthesizer", CoalSynthesizerBlock::new, BlockMachineBase.machineProperties());
+	public static final LavaGeneratorBlock LAVA_GENERATOR =
+			register("lava_generator", LavaGeneratorBlock::new, BlockMachineBase.machineProperties());
+	public static final ElectricFurnaceBlock ELECTRIC_FURNACE =
+			register("electric_furnace", ElectricFurnaceBlock::new, BlockMachineBase.machineProperties());
 
 	private ModBlocks() {
 	}

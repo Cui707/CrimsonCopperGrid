@@ -3,14 +3,15 @@ package com.cyx.crimsoncoppergrid.init;
 import java.util.Set;
 
 import com.cyx.crimsoncoppergrid.CrimsonCopperGrid;
-import com.cyx.crimsoncoppergrid.block.entity.BatteryBlockEntity;
-import com.cyx.crimsoncoppergrid.block.entity.CoalSynthesizerBlockEntity;
-import com.cyx.crimsoncoppergrid.block.entity.ElectricFurnaceBlockEntity;
-import com.cyx.crimsoncoppergrid.block.entity.FuelGeneratorBlockEntity;
-import com.cyx.crimsoncoppergrid.block.entity.LavaGeneratorBlockEntity;
-import com.cyx.crimsoncoppergrid.block.entity.SolarGeneratorBlockEntity;
-import com.cyx.crimsoncoppergrid.block.entity.WindGeneratorBlockEntity;
-import com.cyx.crimsoncoppergrid.blocks.cable.CableBlockEntity;
+import com.cyx.crimsoncoppergrid.blockentity.BatteryBlockEntity;
+import com.cyx.crimsoncoppergrid.blockentity.CoalSynthesizerBlockEntity;
+import com.cyx.crimsoncoppergrid.blockentity.ElectricFurnaceBlockEntity;
+import com.cyx.crimsoncoppergrid.blockentity.FuelGeneratorBlockEntity;
+import com.cyx.crimsoncoppergrid.blockentity.LavaGeneratorBlockEntity;
+import com.cyx.crimsoncoppergrid.blockentity.SolarGeneratorBlockEntity;
+import com.cyx.crimsoncoppergrid.blockentity.WindGeneratorBlockEntity;
+import com.cyx.crimsoncoppergrid.blockentity.cable.CableBlockEntity;
+import com.cyx.crimsoncoppergrid.blockentity.cable.SwitchBlockEntity;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -25,10 +26,17 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
  *
  * <p>26.3 已没有 {@code BlockEntityType.Builder}，构造函数本身就是
  * {@code (BlockEntitySupplier<T>, Set<Block>)}。
+ *
+ * <p>能量能力（{@code EnergyStorage.SIDED}）不在这里登记 —— 它统一由
+ * {@link ModPowerRegistration} 处理，因为那边的 fallback 能一次性覆盖所有机器，
+ * 不需要按类型逐个注册。
  */
 public final class ModBlockEntities {
 	public static final BlockEntityType<CableBlockEntity> CABLE = register(
 			"cable", CableBlockEntity::new, ModBlocks.CABLE);
+
+	public static final BlockEntityType<SwitchBlockEntity> SWITCH = register(
+			"switch", SwitchBlockEntity::new, ModBlocks.SWITCH);
 
 	public static final BlockEntityType<BatteryBlockEntity> BATTERY = register(
 			"battery", BatteryBlockEntity::new, ModBlocks.BATTERY);

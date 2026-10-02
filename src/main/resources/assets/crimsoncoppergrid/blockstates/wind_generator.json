@@ -1,17 +1,32 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,active=false": {
       "model": "crimsoncoppergrid:block/wind_generator"
     },
-    "facing=east": {
+    "facing=north,active=true": {
+      "model": "crimsoncoppergrid:block/wind_generator"
+    },
+    "facing=east,active=false": {
       "model": "crimsoncoppergrid:block/wind_generator",
       "y": 90
     },
-    "facing=south": {
+    "facing=east,active=true": {
+      "model": "crimsoncoppergrid:block/wind_generator",
+      "y": 90
+    },
+    "facing=south,active=false": {
       "model": "crimsoncoppergrid:block/wind_generator",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,active=true": {
+      "model": "crimsoncoppergrid:block/wind_generator",
+      "y": 180
+    },
+    "facing=west,active=false": {
+      "model": "crimsoncoppergrid:block/wind_generator",
+      "y": 270
+    },
+    "facing=west,active=true": {
       "model": "crimsoncoppergrid:block/wind_generator",
       "y": 270
     }

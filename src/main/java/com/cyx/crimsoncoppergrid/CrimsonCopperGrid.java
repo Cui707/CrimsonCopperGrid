@@ -1,10 +1,11 @@
 package com.cyx.crimsoncoppergrid;
 
-import com.cyx.crimsoncoppergrid.energy.SelfCheck;
+import com.cyx.crimsoncoppergrid.blockentity.cable.CableTickManager;
 import com.cyx.crimsoncoppergrid.init.ModBlockEntities;
 import com.cyx.crimsoncoppergrid.init.ModBlocks;
 import com.cyx.crimsoncoppergrid.init.ModCreativeTab;
 import com.cyx.crimsoncoppergrid.init.ModItems;
+import com.cyx.crimsoncoppergrid.init.ModPowerRegistration;
 
 import net.fabricmc.api.ModInitializer;
 
@@ -16,9 +17,15 @@ import org.slf4j.LoggerFactory;
 /**
  * CrimsonCopperGrid —— 只用原版铜与红石搭建的轻量级 Fabric 能源模组。
  *
- * <p>公共（客户端与服务端都会加载）入口。能量网络的核心逻辑在
- * {@code com.cyx.crimsoncoppergrid.energy} 包里，客户端的渲染 / 界面逻辑放到
- * {@code src/client} 下的 ClientModInitializer 中。
+ * <p>公共（客户端与服务端都会加载）入口。
+ *
+ * <h2>初始化顺序</h2>
+ * <ol>
+ *   <li>注册表：方块 -> 方块实体 -> 物品 -> 物品栏。方块实体要引用方块，所以顺序不能换；</li>
+ *   <li>能量能力：把设备接进 Team Reborn Energy 的查阅表，并装好导线网络的 tick 钩子；</li>
+ * </ol>
+ * 能力的注册放在方块实体之后，是因为 {@code registerForBlockEntity} 需要拿到
+ * 已注册的 {@code BlockEntityType} 对象。
  */
 public class CrimsonCopperGrid implements ModInitializer {
 	public static final String MOD_ID = "crimsoncoppergrid";
@@ -33,8 +40,9 @@ public class CrimsonCopperGrid implements ModInitializer {
 		ModItems.init();
 		ModCreativeTab.init();
 
-		// 启动自检：用真实世界验证几条容易写错的接线判定，结果直接打进日志
-		SelfCheck.install();
+		// 能量能力 + 导线网络结算
+		ModPowerRegistration.init();
+		CableTickManager.init();
 
 		LOGGER.info("CrimsonCopperGrid 初始化完成：铜与红石的电网已就绪");
 	}
