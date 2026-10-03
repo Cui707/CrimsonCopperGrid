@@ -11,7 +11,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -36,15 +38,21 @@ import org.jspecify.annotations.Nullable;
  * 只多两个属性。真正的通断语义在 {@link SwitchBlockEntity#conducts()} ——
  * 断开时组网会在此截断。
  *
- * <h2>两个状态属性</h2>
+ * <h2>通断由两个输入合成</h2>
  * <ul>
- *   <li>{@code POWERED}：true 表示**导通**（合闸），false 表示断开。放置时默认合闸，
- *       若旁边已有红石信号则直接以红石状态为准。</li>
- *   <li>{@code FACING}：水平朝向，指向放置者。模型用它把拉杆手柄摆到正确的一侧 ——
- *       合闸时手柄倒向放置者、断开时倒向背侧，和外形的拉杆是同一套读法。</li>
+ *   <li><b>手柄位置</b>（玩家右键扳动，记在 {@link SwitchBlockEntity} 并入存档）—— 常态；</li>
+ *   <li><b>红石信号</b> —— 只在<b>有信号时</b>强制断开，信号消失后回到手柄位置。</li>
  * </ul>
+ * 合成规则就一句：{@code POWERED = 手动开 且 无红石信号}。
  *
- * <p>外观上它是一个「导线中枢 + 安装面板 + 拉杆手柄」的组合体，
+ * <h2>为什么「无信号 → 合闸」是错的</h2>
+ * 邻居会在电闸断开后改写自己的方块状态（例如电池停止充放电时翻转 {@code ACTIVE}），
+ * 这会反过来触发本方块的 {@code neighborChanged}。如果那里写成
+ * 「无红石信号就设为合闸」，任何一次这样的邻居更新都会把玩家手动扳的断开吃掉
+ * （表现为：电闸扳到 off 又自己弹回 on）。合成规则是幂等的，重算多少遍结果都不变，
+ * 这类连锁更新就无害了。
+ *
+ * <p>外观上它是一个「导线中枢 + 安装面板 + ON/OFF 文字牌 + 拉杆手柄」的组合体，
  * 也就是现实里电线上那种在线开关的样子；它仍然是一段导线，只是多了个能扳的手柄。
  */
 public class SwitchBlock extends CableBlock {
@@ -75,14 +83,13 @@ public class SwitchBlock extends CableBlock {
 	// ------------------------------------------------------------ 形状
 
 	/**
-	 * 面板 + 拉杆所占据的那一块体积（单位 1/16 格）。
+	 * 面板 + 文字牌 + 拉杆所占据的那一块体积（单位 1/16 格）。
 	 *
 	 * <p>它必须并进选取形状里，否则会出现「看得见、点不着」——方块模型可以画到多远，
 	 * 玩家能点到的范围是由形状决定的，两者长期不一致会让人以为方块坏了。
-	 * 盒子对居于方块中心；z 方向比 x 宽一格，因为手柄是沿 z 轴倾倒的，
-	 * 扳到两边时杆头会伸到 z 的 ±4 附近。
+	 * 盒子要包住：11×10.4 的安装底板、位于背侧的 10×5 文字牌、以及沿 z 轴倾倒的拉杆。
 	 */
-	private static final VoxelShape SWITCH_BODY = Block.box(5.0, 6.0, 4.0, 11.0, 16.0, 12.0);
+	private static final VoxelShape SWITCH_BODY = Block.box(3.0, 6.0, 3.0, 13.0, 16.0, 13.5);
 
 	/** 并集结果按方块状态缓存：形状查询每帧都在跑，不能每次现拼。 */
 	private static final Map<BlockState, VoxelShape> SHAPE_CACHE = new IdentityHashMap<>();
@@ -112,6 +119,18 @@ public class SwitchBlock extends CableBlock {
 				.setValue(FACING, context.getHorizontalDirection().getOpposite());
 	}
 
+	@Override
+	public void setPlacedBy(Level level, BlockPos pos, BlockState state,
+			@Nullable LivingEntity placer, ItemStack stack) {
+		super.setPlacedBy(level, pos, state, placer, stack);
+		// 手柄的初始位置与放置时的实际状态一致：贴着红石放下就默认断开，
+		// 信号撤走后维持断开，而不是「莫名」跳回合闸。
+		if (!level.isClientSide() && level.getBlockEntity(pos) instanceof SwitchBlockEntity switchEntity) {
+			switchEntity.setManualOpen(isOpen(state));
+			switchEntity.setChanged();
+		}
+	}
+
 	// ------------------------------------------------------------ 手动操作
 
 	@Override
@@ -119,11 +138,16 @@ public class SwitchBlock extends CableBlock {
 		if (level.isClientSide()) {
 			return InteractionResult.SUCCESS;
 		}
-		boolean next = !isOpen(state);
-		level.setBlockAndUpdate(pos, state.setValue(POWERED, next));
+		// 右键只扳「手柄」，POWERED 是手柄与红石信号的合成结果。
+		boolean next = level.getBlockEntity(pos) instanceof SwitchBlockEntity switchEntity
+				? !switchEntity.isManualOpen()
+				: !isOpen(state);
+		applyState(state, level, pos, next);
+
+		boolean effective = computeOpen(level, pos, next);
 		level.playSound(null, pos,
-				next ? SoundEvents.LEVER_CLICK : SoundEvents.STONE_BUTTON_CLICK_OFF,
-				SoundSource.BLOCKS, 0.4F, next ? 0.7F : 0.5F);
+				effective ? SoundEvents.LEVER_CLICK : SoundEvents.STONE_BUTTON_CLICK_OFF,
+				SoundSource.BLOCKS, 0.4F, effective ? 0.7F : 0.5F);
 
 		// 通断变化会改变组网：自身要重算连接显示并作废能量目标缓存
 		if (level.getBlockEntity(pos) instanceof CableBlockEntity cable) {
@@ -137,14 +161,40 @@ public class SwitchBlock extends CableBlock {
 	@Override
 	protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
 			@Nullable Orientation orientation, boolean movedByPiston) {
-		// 先跟随红石，再走父类的「通知方块实体重算」
+		// 幂等重算：开 = 手动开 且 无红石信号。邻居的连锁更新（电池翻 ACTIVE 等）
+		// 无论触发多少次，结果都不变，因此不会再把手动的断开弹回合闸。
 		if (!level.isClientSide()) {
-			boolean powered = !level.hasNeighborSignal(pos);
-			if (powered != isOpen(state)) {
-				level.setBlockAndUpdate(pos, state.setValue(POWERED, powered));
-			}
+			applyState(state, level, pos, manualOpen(level, pos));
 		}
+		// 再走父类的「通知方块实体重算连接与能量目标」
 		super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+	}
+
+	// ------------------------------------------------------------ 通断合成
+
+	/** 玩家手柄位置；方块实体缺失时兜底取当前状态（保底不误扳）。 */
+	private static boolean manualOpen(Level level, BlockPos pos) {
+		if (level.getBlockEntity(pos) instanceof SwitchBlockEntity switchEntity) {
+			return switchEntity.isManualOpen();
+		}
+		return SwitchBlock.isOpen(level.getBlockState(pos));
+	}
+
+	/** 合成规则：开 = 手动开 且 无红石信号。 */
+	private static boolean computeOpen(Level level, BlockPos pos, boolean manualOpen) {
+		return manualOpen && !level.hasNeighborSignal(pos);
+	}
+
+	/** 把手动状态写入方块实体，并把合成结果写回方块状态（无变化就不写）。 */
+	private static void applyState(BlockState state, Level level, BlockPos pos, boolean manualOpen) {
+		if (level.getBlockEntity(pos) instanceof SwitchBlockEntity switchEntity) {
+			switchEntity.setManualOpen(manualOpen);
+			switchEntity.setChanged();
+		}
+		boolean target = computeOpen(level, pos, manualOpen);
+		if (target != isOpen(state)) {
+			level.setBlockAndUpdate(pos, state.setValue(POWERED, target));
+		}
 	}
 
 	/** 电闸与电线外观一致，只是厚一点，让它在视觉上更容易被认出来。 */

@@ -51,9 +51,27 @@ public abstract class BlockMachineBase extends BaseEntityBlock {
 	 *
 	 * <p>放在基类里而不是各个方块类里，是为了让「所有机器长得像一套东西」
 	 * 这件事只有一个修改点；将来要按机器档次分材质时，也在这里分流。
+	 *
+	 * <p><b>只给模型是满格 16³ 的机器用</b>（熔炉等铜块刻字系列）。
 	 */
 	public static Properties machineProperties() {
 		return Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(2.0F).sound(SoundType.COPPER);
+	}
+
+	/**
+	 * 非满格模型机器用的外观工厂：在 {@link #machineProperties()} 基础上关掉遮挡判定。
+	 *
+	 * <p>为什么必须有它：方块模型不满一格时，默认的遮挡判定按满格算，
+	 * 邻居会把自己朝向本方块的共享面剔除掉（它们以为这边是实心铜块），
+	 * 而模型实际没盖住的那一圈就成了「透视窗」—— 电池放在地上能看穿地面、
+	 * 风机底座贴墙能看穿墙，都是这一个原因。导线 / 电闸从一开始就带
+	 * {@code noOcclusion()}，所以从来没有这个问题。
+	 *
+	 * <p>用它的同时记得给模型里**贴着方块边界的面**补 {@code cullface}，
+	 * 否则自己这面和邻居那面共面渲染会闪（z-fighting）。
+	 */
+	public static Properties machinePropertiesNonOccluding() {
+		return machineProperties().noOcclusion();
 	}
 
 	protected BlockMachineBase(Properties properties) {

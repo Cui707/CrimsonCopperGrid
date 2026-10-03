@@ -39,12 +39,15 @@ public final class ModBlocks {
 	public static final CableBlock CABLE = register("cable", CableBlock::new, CableBlock.cableProperties());
 	public static final SwitchBlock SWITCH = register("switch", SwitchBlock::new, SwitchBlock.switchProperties());
 	// ---- 储能 ----
-	public static final BatteryBlock BATTERY = register("battery", BatteryBlock::new, BlockMachineBase.machineProperties());
+	/** 电池是立式电芯（不满一格），必须走非遮挡外观，否则下邻被透视。 */
+	public static final BatteryBlock BATTERY =
+			register("battery", BatteryBlock::new, BlockMachineBase.machinePropertiesNonOccluding());
 	// ---- 发电 ----
 	public static final FuelGeneratorBlock FUEL_GENERATOR =
 			register("fuel_generator", FuelGeneratorBlock::new, BlockMachineBase.machineProperties());
+	/** 太阳能顶部是两层玻璃、不满一格，同样走非遮挡外观。 */
 	public static final SolarGeneratorBlock SOLAR_GENERATOR =
-			register("solar_generator", SolarGeneratorBlock::new, BlockMachineBase.machineProperties());
+			register("solar_generator", SolarGeneratorBlock::new, BlockMachineBase.machinePropertiesNonOccluding());
 	public static final WindGeneratorBlock WIND_GENERATOR =
 			register("wind_generator", WindGeneratorBlock::new, BlockMachineBase.machineProperties());
 	/**
@@ -52,9 +55,10 @@ public final class ModBlocks {
 	 *
 	 * <p>没有方块实体（它只是个标记），但它<b>必须</b>排在 {@link #WIND_GENERATOR} 之后：
 	 * 发电机每次扫塔都要读这个字段，放在前面会读到尚未赋值的 {@code null}。
+	 * 模型是底盘加中柱（不满一格），走非遮挡外观。
 	 */
 	public static final WindGeneratorBaseBlock WIND_GENERATOR_BASE =
-			register("wind_generator_base", WindGeneratorBaseBlock::new, BlockMachineBase.machineProperties());
+			register("wind_generator_base", WindGeneratorBaseBlock::new, BlockMachineBase.machinePropertiesNonOccluding());
 	// ---- 用电 ----
 	public static final CoalSynthesizerBlock COAL_SYNTHESIZER =
 			register("coal_synthesizer", CoalSynthesizerBlock::new, BlockMachineBase.machineProperties());
